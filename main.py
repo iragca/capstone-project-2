@@ -28,8 +28,11 @@ def tweety() -> None:
 
 
 @cli.command()
-def rapidapi(start: int = 0, step: int = 250, max_requests: int | None = None) -> None:
-    """Run the RapidAPI script."""
+def rapidapi_tweets(
+    start: int = 0, step: int = 250, max_requests: int | None = None
+) -> None:
+    """Scrape tweets using RapidAPI using Tweet IDs from the BLM dataset."""
+
     logger.add(
         f"{PROJECT_ROOT}/logs/ingest_external_data.log",
         rotation="1 day",
