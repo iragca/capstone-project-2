@@ -13,6 +13,16 @@ wheels/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
+# Testing notebooks
+*.test.ipynb
+
 # Environment variables
 .env
 *.env
+
+# data
+data/external/
+data/interim/
+
+# Logs
+logs/
