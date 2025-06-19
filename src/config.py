@@ -1,8 +1,9 @@
 import os
 import pathlib
-from pathlib import Path
 from enum import Enum
+from pathlib import Path
 
+import pyotp
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -37,10 +38,13 @@ for var in non_essential_env_vars:
 class Settings(Enum):
     """Settings class to hold environment variables."""
 
+    PYOTP = pyotp.TOTP(os.getenv("X_TOTP", ""))
+
     # Add more environment variables as needed
     # EXAMPLE = os.getenv("example")
     X_USERNAME = os.getenv("X_USERNAME", "")
     X_PASSWORD = os.getenv("X_PASSWORD", "")
+    X_TOTP = PYOTP.now()
     X_RAPIDAPI_KEY = os.getenv("X_RAPIDAPI_KEY", "")
 
 
