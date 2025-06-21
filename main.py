@@ -1,11 +1,11 @@
 import asyncio
 import json
-
 from itertools import count
+from pprint import pprint
+
 import polars as pl
 from tqdm import tqdm
 from typer import Typer
-from src.scraper import TweetyScraper
 
 from src.config import (
     EXTERNAL_DATA_DIR,
@@ -14,7 +14,8 @@ from src.config import (
     Settings,
     logger,
 )
-from src.scraper import RapidApi
+from src.db import DB
+from src.scraper import RapidApi, TweetyScraper
 
 cli = Typer()
 
@@ -22,8 +23,35 @@ cli = Typer()
 @cli.command()
 def tweety() -> None:
     """Run the Tweety script."""
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "tweet.logs")
     scraper = TweetyScraper(previous_session=True)
     asyncio.run(scraper.get_data())
+
+@cli.command()
+def tweety_login() -> None:
+    """Login to Twitter using Tweety."""
+    scraper = TweetyScraper(previous_session=False)
+    asyncio.run(scraper.login())
+
+
+@cli.command()
+def tweety_trends() -> None:
+    """Run the Tweety script."""
+    scraper = TweetyScraper(previous_session=True)
+    asyncio.run(scraper.get_blm_trends())
+
+@cli.command()
+def view_db_data() -> None:
+    db = DB()
+    db.view_data()
+    db.close()
+
+@cli.command()
+def view_schema() -> None:
+    """View the schema of the tweets table."""
+    db = DB()
+    schema = db.connection.execute("DESCRIBE tweets").fetchall()
+    pprint(schema)
 
 
 @cli.command()
