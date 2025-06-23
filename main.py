@@ -4,8 +4,9 @@ from itertools import count
 from pprint import pprint
 
 import polars as pl
+import requests
 from tqdm import tqdm
-from typer import Typer
+from typer import Typer, Option
 
 from src.config import (
     EXTERNAL_DATA_DIR,
@@ -21,11 +22,84 @@ cli = Typer()
 
 
 @cli.command()
+def get_from_oldbird(
+    num_requests: int = Option(
+        ..., "--num-requests", "-n", help="Number of requests to make"
+    ),
+    continuation_token: str = Option(
+        None, "--continuation-token", "-c", help="Optional continuation token"
+    ),
+):
+    """Grab tweets from the Oldbird API and save them to a staging area."""
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "oldbird.logs")
+    staging = INTERIM_DATA_DIR / "oldbird"
+    token_file = staging / "continuation_token.txt"
+
+    if (token_file).exists() and continuation_token is None:
+        with open(staging / "continuation_token.txt", "r") as f:
+            continuation_token = f.read().strip()
+    else:
+        continuation_token = "DAACCgACF_Sz76EAJxAKAAMX9LPvoP_Y8AgABAAAAAILAAUAAABQRW1QQzZ3QUFBZlEvZ0dKTjB2R3AvQUFBQUFVWDlJWmx4cHZBZkJmMG5RNUxHdUVQRi9TdTZPSGJzQ0VYOUp6Y3psdUJ3UmYwbFE3Q1dxQWsIAAYAAAAACAAHAAAAAAwACAoAARf0hmXGm8B8AAAA"
+
+    querystring = {
+        "query": "#blacklivesmatter",
+        "start_date": "2022-03-26",
+        "language": "en",
+        "end_date": "2022-07-24",
+        "limit": "20",
+        "continuation_token": continuation_token,
+    }
+
+    def get_tweets(querystring, num_requests=5):
+        url = "https://twitter154.p.rapidapi.com/search/search/continuation"
+        headers = {
+            "x-rapidapi-key": "3ba6bea96amsha13f50dd29c930fp1f1cf9jsnc15627770e18",
+            "x-rapidapi-host": "twitter154.p.rapidapi.com",
+        }
+
+        querystring_cp = querystring.copy()
+
+        for _ in tqdm(range(num_requests), desc="Fetching tweets", unit="request"):
+
+            response = requests.get(url, headers=headers, params=querystring_cp)
+            data = response.json()
+
+            if response.status_code != 200:
+                logger.error(
+                    f"Error fetching data: {response.status_code} - {data.get('message', 'No message')}"
+                )
+                break
+
+            if "results" not in data:
+                logger.error("No results found in the response")
+                break
+
+            results = data["results"]
+
+            for tweet in results:
+                json_filename = staging / f"{tweet['tweet_id']}.json"
+                with open(json_filename, "w", encoding="utf-8") as f:
+                    json.dump(tweet, f, ensure_ascii=False, indent=4)
+
+            if "continuation_token" not in data:
+                logger.info("No continuation token found, stopping further requests.")
+                break
+
+            with open(token_file, "w") as f:
+                f.write(data["continuation_token"])
+
+            querystring_cp["continuation_token"] = data["continuation_token"]
+
+    get_tweets(querystring, num_requests=num_requests)
+
+
+@cli.command()
 def tweety() -> None:
     """Run the Tweety script."""
     logger.add(PROJECT_ROOT / "reports" / "logs" / "tweet.logs")
     scraper = TweetyScraper(previous_session=True)
     asyncio.run(scraper.get_data())
+
 
 @cli.command()
 def tweety_login() -> None:
@@ -40,11 +114,13 @@ def tweety_trends() -> None:
     scraper = TweetyScraper(previous_session=True)
     asyncio.run(scraper.get_blm_trends())
 
+
 @cli.command()
 def view_db_data() -> None:
     db = DB()
     db.view_data()
     db.close()
+
 
 @cli.command()
 def view_schema() -> None:
