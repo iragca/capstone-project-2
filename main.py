@@ -78,9 +78,9 @@ def get_from_oldbird(
     logger.info(f"Using continuation token: {continuation_token}")
     querystring = {
         "query": "#blacklivesmatter",
-        "start_date": "2022-03-26",
+        "start_date": "2020-03-26",
         "language": "en",
-        "end_date": "2022-07-24",
+        "end_date": "2020-07-24",
         "limit": "20",
         "continuation_token": continuation_token,
     }
