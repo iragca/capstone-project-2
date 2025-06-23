@@ -46,6 +46,9 @@ class Settings(Enum):
     X_PASSWORD = os.getenv("X_PASSWORD", "")
     X_TOTP = PYOTP.now()
     X_RAPIDAPI_KEY = os.getenv("X_RAPIDAPI_KEY", "")
+    POCKETBASE_EMAIL= os.getenv("POCKETBASE_EMAIL", "")
+    POCKETBASE_PASSWORD= os.getenv("POCKETBASE_PASSWORD", "")
+    POCKETBASE_URL= os.getenv("POCKETBASE_URL", "")
 
 
 # Log key paths
