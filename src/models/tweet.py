@@ -4,13 +4,11 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from .tweetUser import TweetUser
-
 
 class Tweet(BaseModel):
     tweet_id: str
     text: str
-    user: TweetUser
+    user_id: str
     bookmark_count: int
     views: Optional[int]
     retweet_count: int

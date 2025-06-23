@@ -5,8 +5,9 @@ from pprint import pprint
 
 import polars as pl
 import requests
+from pocketbase.models import Record
 from tqdm import tqdm
-from typer import Typer, Option
+from typer import Option, Typer
 
 from src.config import (
     EXTERNAL_DATA_DIR,
@@ -16,9 +17,39 @@ from src.config import (
     logger,
 )
 from src.db import DB, PBWarehouse
+from src.models import Tweet
 from src.scraper import RapidApi, TweetyScraper
+from src.utils import get_tweet_replies
 
 cli = Typer()
+
+
+@cli.command()
+def get_replies() -> None:
+    """Get replies to tweets from the Oldbird API."""
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "get_replies.logs")
+    logger.info("Starting to fetch replies from Oldbird API...")
+
+    pb = PBWarehouse()
+    staging_area = INTERIM_DATA_DIR / "oldbird"
+    logger.info(f"Staging area: {staging_area}")
+
+    filter_params = (
+        "reply_count > 0 && "
+        "has_blm_hashtag = TRUE && "
+        "creation_date <= '2020-07-24'"
+    )
+
+    records: list[Record] = pb.client.collection("tweets").get_full_list(
+        query_params={"filter": filter_params}
+    )
+
+    tweets: list[Tweet] = [Tweet(**r.__dict__) for r in records]
+    tweet_ids: list[str] = [tweet.tweet_id for tweet in tweets]
+
+    get_tweet_replies(tweet_ids, INTERIM_DATA_DIR / "oldbird")
+    logger.info(f"Total tweets with replies: {len(tweets)}")
+    logger.success("Replies fetched successfully.")
 
 
 @cli.command()
@@ -49,7 +80,9 @@ def ingest_data() -> None:
 
                 logger.info(f"Successfully ingested {tweet_file.name}")
             except Exception as e:
-                logger.error(f"Error ingesting {tweet_file.name}: {type(e).__name__} - {e}")
+                logger.error(
+                    f"Error ingesting {tweet_file.name}: {type(e).__name__} - {e}"
+                )
         else:
             logger.warning(f"Skipping non-JSON file: {tweet_file.name}")
 

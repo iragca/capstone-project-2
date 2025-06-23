@@ -28,6 +28,7 @@ class PBWarehouse:
         assert isinstance(tweet, dict), "Input must be a dictionary"
 
         text = tweet.get("text", "")
+        user_id = tweet.get("user", {}).get("user_id", "")
 
         search_terms = [
             "#blacklivesmatter",
@@ -36,9 +37,10 @@ class PBWarehouse:
         ]
 
         tweet["has_blm_hashtag"] = any(term in text.lower() for term in search_terms)
+        tweet["user_id"] = user_id
 
         parsed_tweet = Tweet(**tweet)
-        return pl.DataFrame(parsed_tweet.model_dump()).unnest(["user"]).to_dicts()[0]
+        return parsed_tweet.model_dump()
 
     @staticmethod
     def _process_user(tweet: dict):
