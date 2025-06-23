@@ -25,3 +25,4 @@ class Tweet(BaseModel):
     language: str
     source: Optional[str]
     creation_date: str
+    has_blm_hashtag: bool
