@@ -22,6 +22,13 @@ cli = Typer()
 
 
 @cli.command()
+def ingest_data() -> None:
+    """Ingest data from stagign area to warehouse."""
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "ingest_data.logs")
+    pass
+
+
+@cli.command()
 def get_from_oldbird(
     num_requests: int = Option(
         ..., "--num-requests", "-n", help="Number of requests to make"
@@ -32,15 +39,17 @@ def get_from_oldbird(
 ):
     """Grab tweets from the Oldbird API and save them to a staging area."""
     logger.add(PROJECT_ROOT / "reports" / "logs" / "oldbird.logs")
+    logger.info("Starting to fetch tweets from Oldbird API...")
     staging = INTERIM_DATA_DIR / "oldbird"
     token_file = staging / "continuation_token.txt"
 
-    if (token_file).exists() and continuation_token is None:
+    if (token_file).exists():
         with open(staging / "continuation_token.txt", "r") as f:
             continuation_token = f.read().strip()
     else:
         continuation_token = "DAACCgACF_Sz76EAJxAKAAMX9LPvoP_Y8AgABAAAAAILAAUAAABQRW1QQzZ3QUFBZlEvZ0dKTjB2R3AvQUFBQUFVWDlJWmx4cHZBZkJmMG5RNUxHdUVQRi9TdTZPSGJzQ0VYOUp6Y3psdUJ3UmYwbFE3Q1dxQWsIAAYAAAAACAAHAAAAAAwACAoAARf0hmXGm8B8AAAA"
 
+    logger.info(f"Using continuation token: {continuation_token}")
     querystring = {
         "query": "#blacklivesmatter",
         "start_date": "2022-03-26",
@@ -76,6 +85,9 @@ def get_from_oldbird(
 
             results = data["results"]
 
+            if len(results) == 0:
+                logger.warning("No tweets found in this request.")
+
             for tweet in results:
                 json_filename = staging / f"{tweet['tweet_id']}.json"
                 with open(json_filename, "w", encoding="utf-8") as f:
@@ -91,6 +103,9 @@ def get_from_oldbird(
             querystring_cp["continuation_token"] = data["continuation_token"]
 
     get_tweets(querystring, num_requests=num_requests)
+
+    tweet_list = list(staging.iterdir())
+    logger.info(f"Total tweets fetched: {len(tweet_list)-1}")
 
 
 @cli.command()
