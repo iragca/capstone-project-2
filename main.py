@@ -15,7 +15,7 @@ from src.config import (
     Settings,
     logger,
 )
-from src.db import DB
+from src.db import DB, PBWarehouse
 from src.scraper import RapidApi, TweetyScraper
 
 cli = Typer()
@@ -25,7 +25,33 @@ cli = Typer()
 def ingest_data() -> None:
     """Ingest data from stagign area to warehouse."""
     logger.add(PROJECT_ROOT / "reports" / "logs" / "ingest_data.logs")
-    pass
+    logger.info("Starting data ingestion process...")
+
+    pb_client = PBWarehouse()
+    staging_area = INTERIM_DATA_DIR / "oldbird"
+    logger.info(f"Staging area: {staging_area}")
+
+    for tweet_file in staging_area.iterdir():
+        if tweet_file.suffix == ".json":
+            try:
+                with open(tweet_file, "r", encoding="utf-8") as f:
+                    tweet_data = json.load(f)
+
+                assert isinstance(tweet_data, dict), "Tweet data must be a dictionary"
+                assert "tweet_id" in tweet_data, "Tweet data must contain 'tweet_id'"
+
+                if tweet_data["retweet_status"]:
+                    pb_client.ingest_tweet(tweet_data["retweet_status"])
+                if tweet_data["quoted_status"]:
+                    pb_client.ingest_tweet(tweet_data["quoted_status"])
+
+                pb_client.ingest_tweet(tweet_data)
+
+                logger.info(f"Successfully ingested {tweet_file.name}")
+            except Exception as e:
+                logger.error(f"Error ingesting {tweet_file.name}: {type(e).__name__} - {e}")
+        else:
+            logger.warning(f"Skipping non-JSON file: {tweet_file.name}")
 
 
 @cli.command()

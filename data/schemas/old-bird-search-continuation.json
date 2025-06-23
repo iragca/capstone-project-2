@@ -1,0 +1,99 @@
+{
+  "type": "object",
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tweet_id": {
+            "type": "string"
+          },
+          "creation_date": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "media_url": {
+            "type": "null"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "creation_date": {
+                "type": "string"
+              },
+              "user_id": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "follower_count": {
+                "type": "integer"
+              },
+              "following_count": {
+                "type": "integer"
+              },
+              "is_private": {
+                "type": "boolean"
+              },
+              "is_verified": {
+                "type": "boolean"
+              },
+              "location": {
+                "type": "string"
+              },
+              "profile_pic_url": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "external_url": {
+                "type": "string"
+              },
+              "number_of_tweets": {
+                "type": "integer"
+              },
+              "bot": {
+                "type": "boolean"
+              },
+              "timestamp": {
+                "type": "integer"
+              }
+            }
+          },
+          "language": {
+            "type": "string"
+          },
+          "favorite_count": {
+            "type": "integer"
+          },
+          "retweet_count": {
+            "type": "integer"
+          },
+          "reply_count": {
+            "type": "integer"
+          },
+          "quote_count": {
+            "type": "integer"
+          },
+          "retweet": {
+            "type": "boolean"
+          },
+          "timestamp": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "continuation_token": {
+      "type": "string"
+    }
+  }
+}
