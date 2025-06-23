@@ -1,4 +1,3 @@
-import polars as pl
 from pocketbase import PocketBase
 
 from src.config import Settings as s
