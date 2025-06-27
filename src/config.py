@@ -49,6 +49,8 @@ class Settings(Enum):
     POCKETBASE_EMAIL= os.getenv("POCKETBASE_EMAIL", "")
     POCKETBASE_PASSWORD= os.getenv("POCKETBASE_PASSWORD", "")
     POCKETBASE_URL= os.getenv("POCKETBASE_URL", "")
+    WANDB_API_KEY = os.getenv("WANDB_API_KEY", "")
+    WANDB_ENTITY = os.getenv("WANDB_ENTITY", "")
 
 
 # Log key paths

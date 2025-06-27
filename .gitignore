@@ -30,3 +30,7 @@ logs/
 
 # tweety session
 *.tw_session
+
+# mlflow
+mlruns/
+mlartifacts/
