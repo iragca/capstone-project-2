@@ -8,7 +8,9 @@ from pydantic import BaseModel
 class Tweet(BaseModel):
     tweet_id: str
     text: str
+    status_link: str
     user_id: str
+    extremist: Optional[bool] = None
     bookmark_count: int
     views: Optional[int]
     retweet_count: int
@@ -24,3 +26,4 @@ class Tweet(BaseModel):
     source: Optional[str]
     creation_date: str
     has_blm_hashtag: bool
+    fetched_replies: Optional[bool] = False

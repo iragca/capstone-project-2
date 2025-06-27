@@ -35,9 +35,9 @@ def get_replies() -> None:
     logger.info(f"Staging area: {staging_area}")
 
     filter_params = (
-        "reply_count > 0 && "
-        "has_blm_hashtag = TRUE && "
-        "creation_date <= '2020-07-24'"
+        # "reply_count > 0 && "
+        "has_blm_hashtag = TRUE"
+        # "creation_date <= '2020-07-24'"
     )
 
     records: list[Record] = pb.client.collection("tweets").get_full_list(
@@ -110,7 +110,7 @@ def get_from_oldbird(
 
     logger.info(f"Using continuation token: {continuation_token}")
     querystring = {
-        "query": "#blacklivesmatter",
+        "query": "#blm",
         "start_date": "2020-03-26",
         "language": "en",
         "end_date": "2020-07-24",

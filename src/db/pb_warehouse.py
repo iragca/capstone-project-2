@@ -28,6 +28,8 @@ class PBWarehouse:
 
         text = tweet.get("text", "")
         user_id = tweet.get("user", {}).get("user_id", "")
+        username = tweet.get("user", {}).get("username", "")
+        status_link = f"https://x.com/{username}/status/{tweet.get('tweet_id', '')}"
 
         search_terms = [
             "#blacklivesmatter",
@@ -37,6 +39,7 @@ class PBWarehouse:
 
         tweet["has_blm_hashtag"] = any(term in text.lower() for term in search_terms)
         tweet["user_id"] = user_id
+        tweet["status_link"] = status_link
 
         parsed_tweet = Tweet(**tweet)
         return parsed_tweet.model_dump()
