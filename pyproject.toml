@@ -36,7 +36,6 @@ dependencies = [
     "tweety-ns>=2.3.3",
     "twikit>=2.3.3",
     "typer>=0.16.0",
-    "wandb>=0.20.1",
 ]
 
 [dependency-groups]
