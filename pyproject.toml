@@ -31,6 +31,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "timm>=1.0.15",
     "torch>=2.7.1",
+    "torch-geometric>=2.6.1",
     "torchvision>=0.22.1",
     "tqdm>=4.67.1",
     "tweety-ns>=2.3.3",
