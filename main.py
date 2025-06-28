@@ -128,7 +128,6 @@ def get_from_oldbird(
         querystring_cp = querystring.copy()
 
         for _ in tqdm(range(num_requests), desc="Fetching tweets", unit="request"):
-
             response = requests.get(url, headers=headers, params=querystring_cp)
             data = response.json()
 
@@ -164,7 +163,7 @@ def get_from_oldbird(
     get_tweets(querystring, num_requests=num_requests)
 
     tweet_list = list(staging.iterdir())
-    logger.info(f"Total tweets fetched: {len(tweet_list)-1}")
+    logger.info(f"Total tweets fetched: {len(tweet_list) - 1}")
 
 
 @cli.command()
