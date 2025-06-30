@@ -34,3 +34,4 @@ logs/
 # mlflow
 mlruns/
 mlartifacts/
+model_summary.txt
