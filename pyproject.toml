@@ -38,6 +38,7 @@ dependencies = [
     "torch==2.7.0",
     "torch-geometric>=2.6.1",
     "torchinfo>=1.8.0",
+    "torchtyping>=0.1.5",
     "tqdm>=4.67.1",
     "tweety-ns>=2.3.3",
     "twikit>=2.3.3",

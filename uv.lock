@@ -2654,6 +2654,7 @@ dependencies = [
     { name = "torch" },
     { name = "torch-geometric" },
     { name = "torchinfo" },
+    { name = "torchtyping" },
     { name = "tqdm" },
     { name = "tweety-ns" },
     { name = "twikit" },
@@ -2697,6 +2698,7 @@ requires-dist = [
     { name = "torch", specifier = "==2.7.0" },
     { name = "torch-geometric", specifier = ">=2.6.1" },
     { name = "torchinfo", specifier = ">=1.8.0" },
+    { name = "torchtyping", specifier = ">=0.1.5" },
     { name = "tqdm", specifier = ">=4.67.1" },
     { name = "tweety-ns", specifier = ">=2.3.3" },
     { name = "twikit", specifier = ">=2.3.3" },
@@ -2842,6 +2844,19 @@ wheels = [
 ]
 
 [[package]]
+name = "torchtyping"
+version = "0.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "torch" },
+    { name = "typeguard" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0c/b2/9099ac2d76ebe538d527ef73844bcfa1296a5c75bd9f2d489e862d47bb42/torchtyping-0.1.5.tar.gz", hash = "sha256:fb51e1792536223e2497b1e106ed0cbe681f7324044599cb718d03be3f2b3851", size = 23067, upload-time = "2024-08-01T02:44:53.579Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/77/33/3915d3a985bf3914aadfc4e24438a8499c0cd91af0c6d251ad5b773bc310/torchtyping-0.1.5-py3-none-any.whl", hash = "sha256:429d76e16b08a2409226320565d557d4ba3d0d6f544db3e5dc4cf690ffa2a3bd", size = 17992, upload-time = "2024-08-01T02:44:51.857Z" },
+]
+
+[[package]]
 name = "torchvision"
 version = "0.22.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2955,6 +2970,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/36/1e/bb8bfff056eb46b4645780f65b710ea5b83d522deba573652174d858178a/twikit-2.3.3.tar.gz", hash = "sha256:081177a8a1b05f3d67e5622d839bba2a63422c07cea31b906f89df67ae8166da", size = 71141, upload-time = "2025-02-07T14:40:36.709Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4e/e0/69c125e558c429a58e6adcf87880b70baea980898eee4ea855e6d3b7822a/twikit-2.3.3-py3-none-any.whl", hash = "sha256:0d745895bb243f84a1bbb8c9c821f165a0f60e20db27dee66fdb77d05af748fd", size = 82863, upload-time = "2025-02-07T14:40:34.649Z" },
+]
+
+[[package]]
+name = "typeguard"
+version = "2.13.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/3a/38/c61bfcf62a7b572b5e9363a802ff92559cb427ee963048e1442e3aef7490/typeguard-2.13.3.tar.gz", hash = "sha256:00edaa8da3a133674796cf5ea87d9f4b4c367d77476e185e80251cc13dfbb8c4", size = 40604, upload-time = "2021-12-10T21:09:39.158Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9a/bb/d43e5c75054e53efce310e79d63df0ac3f25e34c926be5dffb7d283fb2a8/typeguard-2.13.3-py3-none-any.whl", hash = "sha256:5e3e3be01e887e7eafae5af63d1f36c849aaa94e3a0112097312aabfa16284f1", size = 17605, upload-time = "2021-12-10T21:09:37.844Z" },
 ]
 
 [[package]]
