@@ -488,6 +488,17 @@ wheels = [
 ]
 
 [[package]]
+name = "deepsnap"
+version = "0.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "networkx" },
+    { name = "numpy" },
+    { name = "torch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b5/e2/a658f9245af43282516eb5daeecc36b35ed02b4a493e4385d94c6ad61b6b/deepsnap-0.2.1.tar.gz", hash = "sha256:656a934757c72ff251291d687d95143e7841c487373f53e30d2c05d4aac40d8d", size = 68315, upload-time = "2021-09-05T22:57:16.398Z" }
+
+[[package]]
 name = "docker"
 version = "7.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2627,6 +2638,7 @@ source = { editable = "." }
 dependencies = [
     { name = "black" },
     { name = "boto3" },
+    { name = "deepsnap" },
     { name = "dotenv" },
     { name = "duckdb" },
     { name = "ipykernel" },
@@ -2671,6 +2683,7 @@ dev = [
 requires-dist = [
     { name = "black", specifier = ">=25.1.0" },
     { name = "boto3", specifier = ">=1.38.46" },
+    { name = "deepsnap", specifier = ">=0.2.1" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "duckdb", specifier = ">=1.3.0" },
     { name = "ipykernel", specifier = ">=6.29.5" },
