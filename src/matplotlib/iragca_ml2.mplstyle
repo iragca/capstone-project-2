@@ -1,0 +1,183 @@
+# see https://matplotlib.org/stable/tutorials/introductory/customizing.html
+lines.linewidth: 2
+lines.solid_capstyle: butt
+
+## ***************************************************************************
+## * Preferred palette
+## ***************************************************************************
+## push_to_bg = '#DDDDDD'
+## dark_gray = '#3b3b3b'
+## gray = 'gray'
+## light_gray = '#BFBFBF'
+## dark_blue = '#072ea5'
+## blue = "#5790fc"
+## light_blue = '#91c2ed'
+## light_orange = '#fbb181'
+## orange = "#f89c20"
+## dark_orange = '#ff3e06'
+## dark_teal = '#299ba1'
+## teal = '#2e99a2'
+## light_teal = '#8af0dd'
+## soft_red = ‘#ea6466’
+## soft_black = ‘#333333’
+## ***************************************************************************
+
+patch.facecolor: gray
+
+
+
+## https://arxiv.org/abs/2107.02270 - Color source
+## https://github.com/mpetroff/accessible-color-cycles
+axes.prop_cycle: cycler(color=["#5790fc", "#f89c20", "#e42536", "#964a8b", "#9c9ca1", "#7a21dd"])
+# axes.prop_cycle: cycler(color=["#1845fb", "#ff5e02", "#c91f16", "#c849a9", "#adad7d", "#86c8dd", "#578dff", "#656364"])
+# axes.prop_cycle: cycler(color=["#3f90da", "#ffa90e", "#bd1f01", "#94a4a2", "#832db6", "#a96b59", "#e76300", "#b9ac70", "#717581", "#92dadd"])
+
+axes.facecolor: ffffff  # white
+axes.spines.top: True
+axes.spines.right: True
+
+axes.axisbelow: True
+axes.grid: True
+axes.edgecolor: black
+axes.linewidth: 1.5
+
+
+axes.titlesize: xx-large
+axes.titleweight: bold
+axes.titlecolor: 333333
+axes.titlepad: 10.0
+
+axes.labelsize: medium
+axes.labelweight: bold
+axes.labelcolor: 333333
+axes.labelpad: 10.0
+
+xaxis.labellocation: left
+yaxis.labellocation: top
+
+# Ticks
+xtick.bottom : True
+xtick.top : True
+ytick.left : True
+ytick.right : True
+
+xtick.labelcolor: black
+ytick.labelcolor: black
+
+xtick.labelsize: 10
+ytick.labelsize: 10
+xtick.direction: in
+ytick.direction: in
+xtick.major.size: 6
+ytick.major.size: 6
+xtick.minor.size: 0
+ytick.minor.size: 0
+
+
+ytick.color: black
+xtick.color: black
+
+patch.edgecolor: f0f0f0
+patch.linewidth: 0.5
+
+lines.markersize: 8
+
+svg.fonttype: path
+
+# Grid styling
+grid.linestyle: dashdot
+grid.linewidth: 0.5
+grid.alpha: 0.5
+grid.color: black
+
+
+savefig.edgecolor: f0f0f0
+savefig.facecolor: f0f0f0
+
+# # Legend styling
+legend.fontsize: 12
+legend.frameon: True
+legend.fancybox: True
+legend.edgecolor: black
+
+errorbar.capsize: 4
+#figure.subplot.left: 0.08
+#figure.subplot.right: 0.95
+#figure.subplot.bottom: 0.07
+
+#figure.facecolor: f0f0f0  # grey
+# figure.facecolor: ffffff  # white
+
+## ***************************************************************************
+## * FONT                                                                    *
+## ***************************************************************************
+## The font properties used by `text.Text`.
+## See https://matplotlib.org/api/font_manager_api.html for more information
+## on font properties.  The 6 font properties used for font matching are
+## given below with their default values.
+##
+## The font.family property can take either a concrete font name (not supported
+## when rendering text with usetex), or one of the following five generic
+## values:
+##     - 'serif' (e.g., Times),
+##     - 'sans-serif' (e.g., Helvetica),
+##     - 'cursive' (e.g., Zapf-Chancery),
+##     - 'fantasy' (e.g., Western), and
+##     - 'monospace' (e.g., Courier).
+## Each of these values has a corresponding default list of font names
+## (font.serif, etc.); the first available font in the list is used.  Note that
+## for font.serif, font.sans-serif, and font.monospace, the first element of
+## the list (a DejaVu font) will always be used because DejaVu is shipped with
+## Matplotlib and is thus guaranteed to be available; the other entries are
+## left as examples of other possible values.
+##
+## The font.style property has three values: normal (or roman), italic
+## or oblique.  The oblique style will be used for italic, if it is not
+## present.
+##
+## The font.variant property has two values: normal or small-caps.  For
+## TrueType fonts, which are scalable fonts, small-caps is equivalent
+## to using a font size of 'smaller', or about 83%% of the current font
+## size.
+##
+## The font.weight property has effectively 13 values: normal, bold,
+## bolder, lighter, 100, 200, 300, ..., 900.  Normal is the same as
+## 400, and bold is 700.  bolder and lighter are relative values with
+## respect to the current weight.
+##
+## The font.stretch property has 11 values: ultra-condensed,
+## extra-condensed, condensed, semi-condensed, normal, semi-expanded,
+## expanded, extra-expanded, ultra-expanded, wider, and narrower.  This
+## property is not currently implemented.
+##
+## The font.size property is the default font size for text, given in points.
+## 10 pt is the standard value.
+##
+## Note that font.size controls default text sizes.  To configure
+## special text sizes tick labels, axes, labels, title, etc., see the rc
+## settings for axes and ticks.  Special text sizes can be defined
+## relative to font.size, using the following values: xx-small, x-small,
+## small, medium, large, x-large, xx-large, larger, or smaller
+
+
+font.family: serif
+font.style: normal
+font.variant: normal
+font.weight: normal
+font.stretch: normal
+font.size: 12
+
+font.serif: DejaVu Serif, Bitstream Vera Serif, Computer Modern Roman, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif
+font.sans-serif: Roboto, Helvetica, Arial, sans-serif
+font.cursive: Apple Chancery, Textile, Zapf Chancery, Sand, Script MT, Felipa, Comic Neue, Comic Sans MS, cursive
+font.fantasy: Chicago, Charcoal, Impact, Western, Humor Sans, xkcd, fantasy
+font.monospace: DejaVu Sans Mono, Bitstream Vera Sans Mono, Computer Modern Typewriter, Andale Mono, Nimbus Mono L, Courier New, Courier, Fixed, Terminal, monospace
+
+
+## ***************************************************************************
+## * TEXT                                                                    *
+## ***************************************************************************
+## The text properties used by `text.Text`.
+## See https://matplotlib.org/api/artist_api.html#module-matplotlib.text
+## for more information on text properties
+#text.color: black

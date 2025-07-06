@@ -1,10 +1,12 @@
 import asyncio
+import calendar
 import json
 from itertools import count
 from pprint import pprint
 
 import polars as pl
 import requests
+from datetime import datetime
 from pocketbase.models import Record
 from tqdm import tqdm
 from typer import Option, Typer
@@ -25,6 +27,71 @@ cli = Typer()
 
 
 @cli.command()
+def update_migrations() -> None:
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "migrations.logs")
+
+    pb = PBWarehouse()
+    records: list[Record] = pb.client.collection("tweets").get_full_list()
+
+    for record in tqdm(records, desc="Updating tweets", unit="tweet"):
+        try:
+            update_record = pb.client.collection("tweets_v2").get_list(
+                1, 1, {"filter": f"tweet_id = '{record.tweet_id}'"}
+            )
+
+            if not update_record.items:
+                logger.warning(
+                    f"No record found for tweet_id {record.tweet_id}. Skipping."
+                )
+                continue
+            pb.client.collection("tweets_v2").update(
+                update_record.items[0].id,
+                {
+                    "is_annotated": record.is_annotated,
+                    "is_extremist": record.is_extremist,
+                },
+            )
+        except Exception as e:
+            logger.error(f"Error updating tweet {record.id}: {type(e).__name__} - {e}")
+            continue
+
+    logger.success("All tweets updated successfully.")
+
+
+@cli.command()
+def update_is_reply_to_blm() -> None:
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "update_is_reply.logs")
+
+    pb = PBWarehouse()
+    records: list[Record] = pb.client.collection("tweets_v2").get_full_list()
+
+    for record in tqdm(records, desc="Updating tweets", unit="tweet"):
+        try:
+            reply_to = record.in_reply_to_status_id
+            if not reply_to:
+                continue
+            if reply_to:
+                reply_record = pb.client.collection("tweets_v2").get_list(
+                    1, 1, {"filter": f"tweet_id = '{reply_to}'"}
+                )
+
+                if not reply_record.items:
+                    logger.warning(
+                        f"No reply record found for tweet_id {reply_to}. Skipping."
+                    )
+                    continue
+                if reply_record.items[0].has_blm_hashtag:
+                    pb.client.collection("tweets_v2").update(
+                        record.id, {"is_reply_to_blm": True}
+                    )
+        except Exception as e:
+            logger.error(f"Error updating tweet {record.id}: {type(e).__name__} - {e}")
+            continue
+
+    logger.success("All tweets updated successfully.")
+
+
+@cli.command()
 def get_replies() -> None:
     """Get replies to tweets from the Oldbird API."""
     logger.add(PROJECT_ROOT / "reports" / "logs" / "get_replies.logs")
@@ -35,12 +102,14 @@ def get_replies() -> None:
     logger.info(f"Staging area: {staging_area}")
 
     filter_params = (
-        # "reply_count > 0 && "
-        "has_blm_hashtag = TRUE"
+        "reply_count > 0 && "
+        "has_blm_hashtag = TRUE &&"
         # "creation_date <= '2020-07-24'"
+        "fetched_replies = FALSE"
+        # "is_reply_to_blm = TRUE"
     )
 
-    records: list[Record] = pb.client.collection("tweets").get_full_list(
+    records: list[Record] = pb.client.collection("tweets_v2").get_full_list(
         query_params={"filter": filter_params}
     )
 
@@ -48,6 +117,14 @@ def get_replies() -> None:
     tweet_ids: list[str] = [tweet.tweet_id for tweet in tweets]
 
     get_tweet_replies(tweet_ids, INTERIM_DATA_DIR / "oldbird")
+
+    for tweet_id in tqdm(tweet_ids, desc="Updating tweets", unit="tweet", leave=False):
+        try:
+            pb.update_has_fetched_replies(tweet_id)
+        except Exception as e:
+            logger.error(f"Error updating tweet {tweet_id}: {type(e).__name__} - {e}")
+            continue
+
     logger.info(f"Total tweets with replies: {len(tweets)}")
     logger.success("Replies fetched successfully.")
 
@@ -90,7 +167,7 @@ def ingest_data() -> None:
 @cli.command()
 def get_from_oldbird(
     num_requests: int = Option(
-        ..., "--num-requests", "-n", help="Number of requests to make"
+        100, "--num-requests", "-n", help="Number of requests to make"
     ),
     continuation_token: str = Option(
         None, "--continuation-token", "-c", help="Optional continuation token"
@@ -102,68 +179,74 @@ def get_from_oldbird(
     staging = INTERIM_DATA_DIR / "oldbird"
     token_file = staging / "continuation_token.txt"
 
-    if (token_file).exists():
-        with open(staging / "continuation_token.txt", "r") as f:
-            continuation_token = f.read().strip()
-    else:
-        continuation_token = "DAACCgACF_Sz76EAJxAKAAMX9LPvoP_Y8AgABAAAAAILAAUAAABQRW1QQzZ3QUFBZlEvZ0dKTjB2R3AvQUFBQUFVWDlJWmx4cHZBZkJmMG5RNUxHdUVQRi9TdTZPSGJzQ0VYOUp6Y3psdUJ3UmYwbFE3Q1dxQWsIAAYAAAAACAAHAAAAAAwACAoAARf0hmXGm8B8AAAA"
+
+    continuation_token = Settings.OLD_BIRD_CONTINUATION_TOKEN.value
 
     logger.info(f"Using continuation token: {continuation_token}")
-    querystring = {
-        "query": "#blm",
-        "start_date": "2020-03-26",
-        "language": "en",
-        "end_date": "2020-07-24",
-        "limit": "20",
-        "continuation_token": continuation_token,
-    }
 
-    def get_tweets(querystring, num_requests=5):
-        url = "https://twitter154.p.rapidapi.com/search/search/continuation"
-        headers = {
-            "x-rapidapi-key": "3ba6bea96amsha13f50dd29c930fp1f1cf9jsnc15627770e18",
-            "x-rapidapi-host": "twitter154.p.rapidapi.com",
-        }
+    YEARS = range(2025, 2026)
+    MONTHS = range(1, 7)
 
-        querystring_cp = querystring.copy()
+    for year in YEARS:
+        for month in MONTHS:
+            last_day: int = calendar.monthrange(year, month)[1]
 
-        for _ in tqdm(range(num_requests), desc="Fetching tweets", unit="request"):
-            response = requests.get(url, headers=headers, params=querystring_cp)
-            data = response.json()
+            querystring = {
+                "query": "#blacklivesmatter OR #blm",
+                "start_date": f"{year}-{month:02d}-01",
+                "end_date": f"{year}-{month:02d}-{last_day:02d}",
+                "language": "en",
+                "limit": "20",
+                "continuation_token": continuation_token,
+            }
 
-            if response.status_code != 200:
-                logger.error(
-                    f"Error fetching data: {response.status_code} - {data.get('message', 'No message')}"
-                )
-                break
+            def get_tweets(querystring, num_requests=5):
+                url = "https://twitter154.p.rapidapi.com/search/search/continuation"
+                headers = {
+                    "x-rapidapi-key": "3ba6bea96amsha13f50dd29c930fp1f1cf9jsnc15627770e18",
+                    "x-rapidapi-host": "twitter154.p.rapidapi.com",
+                }
 
-            if "results" not in data:
-                logger.error("No results found in the response")
-                break
+                querystring_cp = querystring.copy()
 
-            results = data["results"]
+                for _ in tqdm(range(num_requests), desc=f"Fetching tweets {year}-{month}", unit="request", ncols=100):
+                    response = requests.get(url, headers=headers, params=querystring_cp)
+                    data = response.json()
 
-            if len(results) == 0:
-                logger.warning("No tweets found in this request.")
+                    if response.status_code != 200:
+                        logger.error(
+                            f"Error fetching data: {response.status_code} - {data.get('message', 'No message')}"
+                        )
+                        continue
 
-            for tweet in results:
-                json_filename = staging / f"{tweet['tweet_id']}.json"
-                with open(json_filename, "w", encoding="utf-8") as f:
-                    json.dump(tweet, f, ensure_ascii=False, indent=4)
+                    if "results" not in data:
+                        logger.error("No results found in the response")
+                        continue
 
-            if "continuation_token" not in data:
-                logger.info("No continuation token found, stopping further requests.")
-                break
+                    results = data["results"]
 
-            with open(token_file, "w") as f:
-                f.write(data["continuation_token"])
+                    if len(results) == 0:
+                        logger.warning("No tweets found in this request.")
+                        break
 
-            querystring_cp["continuation_token"] = data["continuation_token"]
+                    for tweet in results:
+                        json_filename = staging / f"{tweet['tweet_id']}.json"
+                        with open(json_filename, "w", encoding="utf-8") as f:
+                            json.dump(tweet, f, ensure_ascii=False, indent=4)
 
-    get_tweets(querystring, num_requests=num_requests)
+                    if "continuation_token" not in data:
+                        logger.info("No continuation token found, stopping further requests.")
+                        break
 
-    tweet_list = list(staging.iterdir())
-    logger.info(f"Total tweets fetched: {len(tweet_list) - 1}")
+                    with open(token_file, "w") as f:
+                        f.write(data["continuation_token"])
+
+                    querystring_cp["continuation_token"] = data["continuation_token"]
+
+            get_tweets(querystring, num_requests=num_requests)
+
+            tweet_list = list(staging.iterdir())
+            logger.info(f"Total tweets fetched: {len(tweet_list) - 1}")
 
 
 @cli.command()

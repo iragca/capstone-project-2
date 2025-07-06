@@ -11,6 +11,7 @@ class Tweet(BaseModel):
     status_link: str
     user_id: str
     extremist: Optional[bool] = None
+    is_annotated: Optional[bool] = False
     bookmark_count: int
     views: Optional[int]
     retweet_count: int
@@ -27,3 +28,4 @@ class Tweet(BaseModel):
     creation_date: str
     has_blm_hashtag: bool
     fetched_replies: Optional[bool] = False
+    is_reply_to_blm: Optional[bool] = None

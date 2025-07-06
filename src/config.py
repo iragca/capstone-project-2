@@ -14,6 +14,7 @@ ENV_FILE: Path = PROJECT_ROOT / ".env"
 DATA_DIR: Path = PROJECT_ROOT / "data"
 EXTERNAL_DATA_DIR: Path = DATA_DIR / "external"
 INTERIM_DATA_DIR: Path = DATA_DIR / "interim"
+MPL_STYLE_DIR: Path = PROJECT_ROOT / "src" / "matplotlib"
 
 if not ENV_FILE.exists():
     logger.warning(
@@ -46,6 +47,7 @@ class Settings(Enum):
     X_PASSWORD = os.getenv("X_PASSWORD", "")
     X_TOTP = PYOTP.now()
     X_RAPIDAPI_KEY = os.getenv("X_RAPIDAPI_KEY", "")
+    OLD_BIRD_CONTINUATION_TOKEN = os.getenv("OLD_BIRD_CONTINUATION_TOKEN", "")
     POCKETBASE_EMAIL= os.getenv("POCKETBASE_EMAIL", "")
     POCKETBASE_PASSWORD= os.getenv("POCKETBASE_PASSWORD", "")
     POCKETBASE_URL= os.getenv("POCKETBASE_URL", "")

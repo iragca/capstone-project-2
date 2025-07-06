@@ -15,7 +15,7 @@ class PBWarehouse:
         assert isinstance(tweet, dict), "Input must be a dictionary"
         processed_tweet = self._process_tweet(tweet)
         processed_user = self._process_user(tweet)
-        record_tweet = self.client.collection("tweets").create(processed_tweet)
+        record_tweet = self.client.collection("tweets_v2").create(processed_tweet)
         record_user = self.client.collection("tweet_users").create(processed_user)
         return {
             "record_tweet": record_tweet,
@@ -50,3 +50,13 @@ class PBWarehouse:
         user = tweet.get("user", {})
         parsed_user = User(**user)
         return parsed_user.model_dump()
+
+    def update_has_fetched_replies(self, tweet_id: str) -> None:
+        assert isinstance(tweet_id, str), "tweet_id must be a string"
+        record = self.client.collection("tweets_v2").get_list(1, 1, {"filter": f"tweet_id = '{tweet_id}'"})
+        
+        updated_record = self.client.collection("tweets_v2").update(
+            record.items[0].id,
+            {"fetched_replies": True}
+        )
+        return updated_record

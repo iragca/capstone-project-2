@@ -1,0 +1,82 @@
+### Credits
+## https://github.com/mpetroff/accessible-color-cycles
+## https://arxiv.org/abs/2107.02270
+## https://github.com/hosilva/mplstyle
+
+### Axes
+axes.titlesize : large
+axes.labelsize : large
+axes.formatter.use_mathtext : True
+axes.axisbelow: True
+
+### Grid
+axes.grid: False
+grid.linestyle: dashdot
+grid.linewidth: 0.5
+grid.alpha: 0.5
+grid.color: gray
+
+### Lines
+lines.linewidth : 1.5
+lines.markersize : 8
+hatch.linewidth: 0.25
+
+patch.antialiased   : True
+
+### Ticks
+xtick.top: True
+xtick.bottom: True
+xtick.major.size: 3.0
+xtick.minor.size: 1.0
+xtick.major.width: 1
+xtick.minor.width: 1
+xtick.direction: in
+xtick.minor.visible: True
+xtick.major.top: True
+xtick.major.bottom: True
+xtick.minor.top: True
+xtick.minor.bottom: True
+xtick.major.pad: 1.0
+xtick.minor.pad: 1.0
+xtick.labelsize: medium
+
+ytick.left: True
+ytick.right: True
+ytick.major.size: 3.0
+ytick.minor.size: 1.0
+ytick.major.width: 1
+ytick.minor.width: 1
+ytick.direction: in
+ytick.minor.visible: True
+ytick.major.left: True
+ytick.major.right: True
+ytick.minor.left: True
+ytick.minor.right: True
+ytick.major.pad: 1.0
+ytick.minor.pad: 1.0
+ytick.labelsize: medium
+
+### Legend
+legend.frameon: True
+legend.fontsize: 10
+legend.edgecolor: black
+legend.fancybox: True
+
+### Figure size
+figure.figsize: 4, 2.5
+figure.subplot.left: 0.125
+figure.subplot.bottom: 0.175
+figure.subplot.top: 0.95
+figure.subplot.right: 0.95
+figure.autolayout : False
+
+### Fonts
+mathtext.fontset : cm
+font.family: serif
+font.serif: cmr10
+
+### Saving figures
+path.simplify : True
+
+### Colors
+axes.prop_cycle: cycler(color=["#5790fc", "#f89c20", "#e42536", "#964a8b", "#9c9ca1", "#7a21dd"])
