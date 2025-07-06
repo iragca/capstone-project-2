@@ -6,7 +6,6 @@ from pprint import pprint
 
 import polars as pl
 import requests
-from datetime import datetime
 from pocketbase.models import Record
 from tqdm import tqdm
 from typer import Option, Typer
@@ -104,7 +103,8 @@ def get_replies() -> None:
     filter_params = (
         "reply_count > 0 && "
         "has_blm_hashtag = TRUE &&"
-        # "creation_date <= '2020-07-24'"
+        "creation_date <= '2020-07-24' &&"
+        "creation_date >= '2020-03-26' &&"
         "fetched_replies = FALSE"
         # "is_reply_to_blm = TRUE"
     )
@@ -184,69 +184,74 @@ def get_from_oldbird(
 
     logger.info(f"Using continuation token: {continuation_token}")
 
-    YEARS = range(2025, 2026)
-    MONTHS = range(1, 7)
+    YEARS = range(2020, 2021)
+    MONTHS = range(3, 6)
 
     for year in YEARS:
         for month in MONTHS:
+            # year: int = 2020
+            # month: int = 6
             last_day: int = calendar.monthrange(year, month)[1]
+            for day in range(1, last_day + 1):
 
-            querystring = {
-                "query": "#blacklivesmatter OR #blm",
-                "start_date": f"{year}-{month:02d}-01",
-                "end_date": f"{year}-{month:02d}-{last_day:02d}",
-                "language": "en",
-                "limit": "20",
-                "continuation_token": continuation_token,
-            }
-
-            def get_tweets(querystring, num_requests=5):
-                url = "https://twitter154.p.rapidapi.com/search/search/continuation"
-                headers = {
-                    "x-rapidapi-key": "3ba6bea96amsha13f50dd29c930fp1f1cf9jsnc15627770e18",
-                    "x-rapidapi-host": "twitter154.p.rapidapi.com",
+                querystring = {
+                    "query": "#blacklivesmatter OR #blm",
+                    "start_date": f"{year}-{month:02d}-{day:02d}",
+                    "end_date": f"{year}-{month:02d}-{day+1:02d}",
+                    # "end_date": f"{year}-{month:02d}-{last_day:02d}",
+                    "language": "en",
+                    "min_retweets": "0",
+                    "limit": "20",
+                    "continuation_token": continuation_token,
                 }
 
-                querystring_cp = querystring.copy()
+                def get_tweets(querystring, num_requests=5):
+                    url = "https://twitter154.p.rapidapi.com/search/search/continuation"
+                    headers = {
+                        "x-rapidapi-key": "3ba6bea96amsha13f50dd29c930fp1f1cf9jsnc15627770e18",
+                        "x-rapidapi-host": "twitter154.p.rapidapi.com",
+                    }
 
-                for _ in tqdm(range(num_requests), desc=f"Fetching tweets {year}-{month}", unit="request", ncols=100):
-                    response = requests.get(url, headers=headers, params=querystring_cp)
-                    data = response.json()
+                    querystring_cp = querystring.copy()
 
-                    if response.status_code != 200:
-                        logger.error(
-                            f"Error fetching data: {response.status_code} - {data.get('message', 'No message')}"
-                        )
-                        continue
+                    for _ in tqdm(range(num_requests), desc=f"Fetching tweets {year}-{month}-{day}", unit="request", ncols=100):
+                        response = requests.get(url, headers=headers, params=querystring_cp)
+                        data = response.json()
 
-                    if "results" not in data:
-                        logger.error("No results found in the response")
-                        continue
+                        if response.status_code != 200:
+                            logger.error(
+                                f"Error fetching data: {response.status_code} - {data.get('message', 'No message')}"
+                            )
+                            continue
 
-                    results = data["results"]
+                        if "results" not in data:
+                            logger.error("No results found in the response")
+                            continue
 
-                    if len(results) == 0:
-                        logger.warning("No tweets found in this request.")
-                        break
+                        results = data["results"]
 
-                    for tweet in results:
-                        json_filename = staging / f"{tweet['tweet_id']}.json"
-                        with open(json_filename, "w", encoding="utf-8") as f:
-                            json.dump(tweet, f, ensure_ascii=False, indent=4)
+                        if len(results) == 0:
+                            logger.warning("No tweets found in this request.")
+                            break
 
-                    if "continuation_token" not in data:
-                        logger.info("No continuation token found, stopping further requests.")
-                        break
+                        for tweet in results:
+                            json_filename = staging / f"{tweet['tweet_id']}.json"
+                            with open(json_filename, "w", encoding="utf-8") as f:
+                                json.dump(tweet, f, ensure_ascii=False, indent=4)
 
-                    with open(token_file, "w") as f:
-                        f.write(data["continuation_token"])
+                        if "continuation_token" not in data:
+                            logger.info("No continuation token found, stopping further requests.")
+                            break
 
-                    querystring_cp["continuation_token"] = data["continuation_token"]
+                        with open(token_file, "w") as f:
+                            f.write(data["continuation_token"])
 
-            get_tweets(querystring, num_requests=num_requests)
+                        querystring_cp["continuation_token"] = data["continuation_token"]
 
-            tweet_list = list(staging.iterdir())
-            logger.info(f"Total tweets fetched: {len(tweet_list) - 1}")
+                get_tweets(querystring, num_requests=num_requests)
+
+                tweet_list = list(staging.iterdir())
+                logger.info(f"Total tweets fetched: {len(tweet_list) - 1}")
 
 
 @cli.command()
