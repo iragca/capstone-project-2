@@ -44,10 +44,10 @@ axes.spines.right: True
 axes.facecolor: ffffff  # white
 axes.edgecolor: DDDDDD
 axes.linewidth: 3
-axes.titleweight: bold
+axes.titleweight: semibold
 axes.titlecolor: 333333
 axes.titlepad: 10.0
-axes.labelweight: bold
+axes.labelweight: semibold
 axes.labelcolor: 333333
 axes.labelpad: 10.0
 
@@ -163,15 +163,7 @@ figure.facecolor: ffffff  # white
 ### Fonts
 mathtext.fontset : cm
 font.family: sans-serif
-font.style: normal
-font.variant: normal
-font.weight: semibold
-font.stretch: normal
-font.serif: DejaVu Serif, Bitstream Vera Serif, Computer Modern Roman, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif
-font.sans-serif: Roboto, Helvetica, Arial, sans-serif
-font.cursive: Apple Chancery, Textile, Zapf Chancery, Sand, Script MT, Felipa, Comic Neue, Comic Sans MS, cursive
-font.fantasy: Chicago, Charcoal, Impact, Western, Humor Sans, xkcd, fantasy
-font.monospace: DejaVu Sans Mono, Bitstream Vera Sans Mono, Computer Modern Typewriter, Andale Mono, Nimbus Mono L, Courier New, Courier, Fixed, Terminal, monospace
+font.serif: Computer Modern Sans Serif, helvet, arial
 
 
 ## ***************************************************************************

@@ -10,7 +10,7 @@ class Tweet(BaseModel):
     text: str
     status_link: str
     user_id: str
-    extremist: Optional[bool] = None
+    is_extremist: Optional[bool] = False
     is_annotated: Optional[bool] = False
     bookmark_count: int
     views: Optional[int]

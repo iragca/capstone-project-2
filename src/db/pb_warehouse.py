@@ -5,8 +5,8 @@ from src.models import Tweet, User
 
 
 class PBWarehouse:
-    def __init__(self):
-        self.client = PocketBase(s.POCKETBASE_URL.value)
+    def __init__(self, url: str = s.POCKETBASE_URL.value):
+        self.client = PocketBase(url)
         self.authenticated = self.client.admins.auth_with_password(
             email=s.POCKETBASE_EMAIL.value, password=s.POCKETBASE_PASSWORD.value
         )
