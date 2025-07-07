@@ -26,6 +26,62 @@ cli = Typer()
 
 
 @cli.command()
+def update_reply_links() -> None:
+    """Update the in_reply_to_status_link field for tweets."""
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "update_reply_links.logs")
+
+    pb = PBWarehouse()
+    records: list[Record] = pb.client.collection("tweets_v2").get_full_list(query_params={
+        "filter": "in_reply_to_status_link = NULL && in_reply_to_status_id != NULL"
+    })
+
+    for record in tqdm(records, desc="Updating reply links", unit="tweet", leave=False, ncols=100):
+        try:
+            if record.in_reply_to_status_link:
+                logger.warning(
+                    f"Tweet {record.id} already has in_reply_to_status_link. Skipping."
+                )
+                continue
+
+            if record.in_reply_to_status_id:
+                reply_record = pb.client.collection("tweets_v2").get_list(
+                    1, 1, {"filter": f"tweet_id = '{record.in_reply_to_status_id}'"}
+                )
+
+                if not reply_record.items:
+                    logger.warning(
+                        f"No reply record found for tweet_id {record.in_reply_to_status_id}. Skipping."
+                    )
+                    continue
+
+                replied_user = pb.client.collection("tweet_users").get_list(
+                    1, 1, {"filter": f"user_id = '{reply_record.items[0].user_id}'"}
+                )
+
+                if not replied_user.items:
+                    logger.warning(
+                        f"No user record found for user_id {reply_record.items[0].user_id}. Skipping."
+                    )
+                    continue
+
+                assert record.id, "Record ID is required to update the tweet."
+                assert replied_user.items, "Replied user must exist to create a link."
+                assert reply_record.items, "Reply record must exist to create a link."
+                assert isinstance(record.id, str), "Record ID must be a string."
+                reply_link = f"https://x.com/{replied_user.items[0].username}/status/{reply_record.items[0].tweet_id}"
+                pb.client.collection("tweets_v2").update(
+                    record.id, {"in_reply_to_status_link": reply_link}
+                )
+            else:
+                continue
+        except Exception as e:
+            logger.error(f"Error updating tweet {record.id}: {type(e).__name__} - {e}")
+            continue
+
+    logger.success("All tweets updated successfully.")
+
+
+@cli.command()
 def update_migrations() -> None:
     logger.add(PROJECT_ROOT / "reports" / "logs" / "migrations.logs")
 

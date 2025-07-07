@@ -12,13 +12,14 @@ class Tweet(BaseModel):
     user_id: str
     is_extremist: Optional[bool] = False
     is_annotated: Optional[bool] = False
+    in_reply_to_status_link: Optional[str] = None
+    in_reply_to_status_id: Optional[str]
     bookmark_count: int
     views: Optional[int]
     retweet_count: int
     favorite_count: int
     reply_count: int
     quote_count: int
-    in_reply_to_status_id: Optional[str]
     conversation_id: str
     retweet_tweet_id: Optional[str]
     quoted_status_id: Optional[str]
