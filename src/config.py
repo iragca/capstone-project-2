@@ -14,6 +14,7 @@ ENV_FILE: Path = PROJECT_ROOT / ".env"
 DATA_DIR: Path = PROJECT_ROOT / "data"
 EXTERNAL_DATA_DIR: Path = DATA_DIR / "external"
 INTERIM_DATA_DIR: Path = DATA_DIR / "interim"
+PROCESSED_DATA_DIR: Path = DATA_DIR / "processed"
 MPL_STYLE_DIR: Path = PROJECT_ROOT / "src" / "matplotlib"
 
 if not ENV_FILE.exists():
