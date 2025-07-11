@@ -26,6 +26,75 @@ cli = Typer()
 
 
 @cli.command()
+def update_has_replies_using_reply_id() -> None:
+    """Update the has_replies field for tweets."""
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "update_has_replies.logs")
+
+    pb = PBWarehouse()
+    records: list[Record] = pb.client.collection("tweets_v2").get_full_list(
+        query_params={"filter": "in_reply_to_status_id != NULL"}
+    )
+
+    for record in tqdm(
+        records, desc="Updating has_replies", unit="tweet", leave=False, ncols=100
+    ):
+        tweet = Tweet(**record.__dict__)
+        try:
+            if tweet.in_reply_to_status_id:
+                reply_record = pb.client.collection("tweets_v2").get_list(
+                    1, 1, {"filter": f"tweet_id = '{tweet.in_reply_to_status_id}'"}
+                )
+                if not reply_record.items:
+                    logger.warning(
+                        f"No reply record found for tweet_id {tweet.in_reply_to_status_id}. Skipping."
+                    )
+                    continue
+
+                pb.client.collection("tweets_v2").update(
+                    reply_record.items[0].id, {"fetched_replies": True}
+                )
+
+        except Exception as e:
+            logger.error(f"Error updating tweet {record.id}: {type(e).__name__} - {e}")
+            continue
+
+
+@cli.command()
+def update_has_replies_using_has_blm() -> None:
+    """Update the has_replies field for tweets."""
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "update_has_replies.logs")
+
+    pb = PBWarehouse()
+    records: list[Record] = pb.client.collection("tweets_v2").get_full_list(
+        query_params={"filter": "is_reply_to_blm = TRUE"}
+    )
+
+    for record in tqdm(
+        records, desc="Updating has_replies", unit="tweet", leave=False, ncols=100
+    ):
+        tweet = Tweet(**record.__dict__)
+        try:
+            if tweet.in_reply_to_status_id:
+                reply_record = pb.client.collection("tweets_v2").get_list(
+                    1, 1, {"filter": f"tweet_id = '{tweet.in_reply_to_status_id}'"}
+                )
+
+                if not reply_record.items:
+                    logger.warning(
+                        f"No reply record found for tweet_id {tweet.in_reply_to_status_id}. Skipping."
+                    )
+                    continue
+
+                pb.client.collection("tweets_v2").update(
+                    reply_record.items[0].id, {"fetched_replies": True}
+                )
+
+        except Exception as e:
+            logger.error(f"Error updating tweet {record.id}: {type(e).__name__} - {e}")
+            continue
+
+
+@cli.command()
 def update_reply_links() -> None:
     """Update the in_reply_to_status_link field for tweets."""
     logger.add(PROJECT_ROOT / "reports" / "logs" / "update_reply_links.logs")
