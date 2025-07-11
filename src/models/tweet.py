@@ -21,7 +21,7 @@ class Tweet(BaseModel):
     reply_count: int
     quote_count: int
     conversation_id: str
-    retweet_tweet_id: Optional[str]
+    retweet_status_id: Optional[str]
     quoted_status_id: Optional[str]
     community_note: Optional[str]
     language: str

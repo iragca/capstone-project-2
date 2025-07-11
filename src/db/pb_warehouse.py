@@ -30,6 +30,8 @@ class PBWarehouse:
         user_id = tweet.get("user", {}).get("user_id", "")
         username = tweet.get("user", {}).get("username", "")
         status_link = f"https://x.com/{username}/status/{tweet.get('tweet_id', '')}"
+        retweet_status_id = tweet.get("retweet_tweet_id", {})
+        quoted_status_id = tweet.get("quoted_status_id", {})
 
         search_terms = [
             "#blacklivesmatter",
@@ -40,6 +42,8 @@ class PBWarehouse:
         tweet["has_blm_hashtag"] = any(term in text.lower() for term in search_terms)
         tweet["user_id"] = user_id
         tweet["status_link"] = status_link
+        tweet["retweet_status_id"] = retweet_status_id
+        tweet["quoted_status_id"] = quoted_status_id
 
         parsed_tweet = Tweet(**tweet)
         return parsed_tweet.model_dump()
@@ -60,3 +64,10 @@ class PBWarehouse:
             {"fetched_replies": True}
         )
         return updated_record
+    
+    def get_user_by_id(self, user_id: str):
+        assert isinstance(user_id, str), "user_id must be a string"
+        user = self.client.collection("tweet_users").get_list(1, 1, {"filter": f"user_id = '{user_id}'"})
+        if user.items:
+            return user.items[0]
+        return None

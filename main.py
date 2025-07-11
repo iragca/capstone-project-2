@@ -31,11 +31,15 @@ def update_reply_links() -> None:
     logger.add(PROJECT_ROOT / "reports" / "logs" / "update_reply_links.logs")
 
     pb = PBWarehouse()
-    records: list[Record] = pb.client.collection("tweets_v2").get_full_list(query_params={
-        "filter": "in_reply_to_status_link = NULL && in_reply_to_status_id != NULL"
-    })
+    records: list[Record] = pb.client.collection("tweets_v2").get_full_list(
+        query_params={
+            "filter": "in_reply_to_status_link = NULL && in_reply_to_status_id != NULL"
+        }
+    )
 
-    for record in tqdm(records, desc="Updating reply links", unit="tweet", leave=False, ncols=100):
+    for record in tqdm(
+        records, desc="Updating reply links", unit="tweet", leave=False, ncols=100
+    ):
         try:
             if record.in_reply_to_status_link:
                 logger.warning(
@@ -235,7 +239,6 @@ def get_from_oldbird(
     staging = INTERIM_DATA_DIR / "oldbird"
     token_file = staging / "continuation_token.txt"
 
-
     continuation_token = Settings.OLD_BIRD_CONTINUATION_TOKEN.value
 
     logger.info(f"Using continuation token: {continuation_token}")
@@ -249,11 +252,10 @@ def get_from_oldbird(
             # month: int = 6
             last_day: int = calendar.monthrange(year, month)[1]
             for day in range(1, last_day + 1):
-
                 querystring = {
                     "query": "#blacklivesmatter OR #blm",
                     "start_date": f"{year}-{month:02d}-{day:02d}",
-                    "end_date": f"{year}-{month:02d}-{day+1:02d}",
+                    "end_date": f"{year}-{month:02d}-{day + 1:02d}",
                     # "end_date": f"{year}-{month:02d}-{last_day:02d}",
                     "language": "en",
                     "min_retweets": "0",
@@ -270,8 +272,15 @@ def get_from_oldbird(
 
                     querystring_cp = querystring.copy()
 
-                    for _ in tqdm(range(num_requests), desc=f"Fetching tweets {year}-{month}-{day}", unit="request", ncols=100):
-                        response = requests.get(url, headers=headers, params=querystring_cp)
+                    for _ in tqdm(
+                        range(num_requests),
+                        desc=f"Fetching tweets {year}-{month}-{day}",
+                        unit="request",
+                        ncols=100,
+                    ):
+                        response = requests.get(
+                            url, headers=headers, params=querystring_cp
+                        )
                         data = response.json()
 
                         if response.status_code != 200:
@@ -296,13 +305,17 @@ def get_from_oldbird(
                                 json.dump(tweet, f, ensure_ascii=False, indent=4)
 
                         if "continuation_token" not in data:
-                            logger.info("No continuation token found, stopping further requests.")
+                            logger.info(
+                                "No continuation token found, stopping further requests."
+                            )
                             break
 
                         with open(token_file, "w") as f:
                             f.write(data["continuation_token"])
 
-                        querystring_cp["continuation_token"] = data["continuation_token"]
+                        querystring_cp["continuation_token"] = data[
+                            "continuation_token"
+                        ]
 
                 get_tweets(querystring, num_requests=num_requests)
 
