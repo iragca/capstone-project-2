@@ -9,7 +9,7 @@ import requests
 from pocketbase.models import Record
 from tqdm import tqdm
 from typer import Option, Typer
-
+import subprocess
 from src.config import (
     EXTERNAL_DATA_DIR,
     INTERIM_DATA_DIR,
@@ -23,6 +23,27 @@ from src.scraper import RapidApi, TweetyScraper
 from src.utils import get_tweet_replies
 
 cli = Typer()
+
+@cli.command()
+def grid_search(script: str = "hatebert") -> None:
+    """Run grid search for hyperparameter tuning."""
+    logger.add(PROJECT_ROOT / "reports" / "logs" / "grid_search.logs")
+    logger.info(f"Running grid search for script: {script}")
+
+    if script == "hatebert":
+        for threshold in range(1, 10):
+            subprocess.run(
+                [
+                    "uv",
+                    "run",
+                    "hatebert_training.py",
+                    "--threshold",
+                    str(threshold / 10),
+                ],
+            )
+        logger.info("Completed grid search.")
+    else:
+        logger.error(f"Unknown script: {script}. Please use 'hatebert'.")
 
 
 @cli.command()
