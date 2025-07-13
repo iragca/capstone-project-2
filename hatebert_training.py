@@ -55,7 +55,7 @@ def main():
 
     warnings.filterwarnings("ignore")
     mlflow.set_tracking_uri(uri="http://192.168.100.203:5000/")
-    mlflow.set_experiment("[CAPSTONE-2] HateBERT - Link Prediction")
+    mlflow.set_experiment("[CAPSTONE-2] Link Prediction")
     data: pl.DataFrame = load_data()
     graph: nx.DiGraph = create_graph(data)
     dataset = GraphDataset([graph], task="link_pred", edge_train_mode="disjoint")
@@ -167,12 +167,12 @@ def train(model, dataloaders, optimizer, args, print_progress=False):
 
             mlflow.log_metrics(
                 {
-                    "[TRAIN] ROC-AUC": score_train["roc_auc"],
-                    "[VAL] ROC-AUC": score_val["roc_auc"],
-                    "[TEST] ROC-AUC": score_test["roc_auc"],
-                    "[TRAIN] F1 Score": score_train["f1_score"],
-                    "[VAL] F1 Score": score_val["f1_score"],
-                    "[TEST] F1 Score": score_test["f1_score"],
+                    "TRAIN: ROC-AUC": score_train["roc_auc"],
+                    "VAL: ROC-AUC": score_val["roc_auc"],
+                    "TEST: ROC-AUC": score_test["roc_auc"],
+                    "TRAIN: F1 Score": score_train["f1_score"],
+                    "VAL: F1 Score": score_val["f1_score"],
+                    "TEST: F1 Score": score_test["f1_score"],
                     "Loss": loss.item(),
                 },
                 step=epoch,
