@@ -23,6 +23,7 @@ wheels/
 # data
 data/external/
 data/interim/
+tmp
 
 # Logs
 logs/

@@ -68,6 +68,7 @@ class PBWarehouse:
     def get_user_by_id(self, user_id: str):
         assert isinstance(user_id, str), "user_id must be a string"
         user = self.client.collection("tweet_users").get_list(1, 1, {"filter": f"user_id = '{user_id}'"})
-        if user.items:
-            return user.items[0]
-        return None
+
+        if user.items and len(user.items) > 0:
+            return user.items[0].__dict__
+        return {}
