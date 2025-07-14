@@ -20,9 +20,27 @@ from src.config import (
 from src.db import DB, PBWarehouse
 from src.models import Tweet
 from src.scraper import RapidApi, TweetyScraper
-from src.utils import get_tweet_replies
+from src.utils import get_tweet_replies, get_user_tweets
 
 cli = Typer()
+
+
+@cli.command()
+def get_all_users_tweets(max_requests: int = 100) -> None:
+    user_id = "190751291"
+    username = "chekmate111"
+
+    data = get_user_tweets(
+        user_id,
+        username,
+        Settings.OLD_BIRD_USERS_CONTINUATION_TOKEN,
+        max_requests,
+    )
+    print(type(data), len(data))
+
+    # if data[0]:
+    #     print(data)
+
 
 @cli.command()
 def grid_search(script: str = "hatebert") -> None:
