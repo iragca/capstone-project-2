@@ -36,3 +36,9 @@ class HateBERT(torch.nn.Module):
 
     def loss(self, pred, label):
         return self.loss_fn(pred, label)
+    
+
+    @property
+    def name(self):
+        """Returns the name of the model."""
+        return "HateBERT(GCNConv)" if isinstance(self.conv1, GCNConv) else "HateBERT(SAGEConv)"
