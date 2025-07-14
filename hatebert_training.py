@@ -1,13 +1,16 @@
+import argparse
 import copy
 import warnings
 
-import argparse
 import mlflow
 import networkx as nx
+import numpy as np
 import polars as pl
 import torch
 from deepsnap.batch import Batch
 from deepsnap.dataset import GraphDataset
+from mlflow.models.signature import ModelSignature
+from mlflow.types.schema import Schema, TensorSpec
 from sklearn.metrics import f1_score, roc_auc_score
 from torch.utils.data import DataLoader
 from torchinfo import summary
@@ -116,12 +119,32 @@ def main():
 
         with open("model_architecture.txt", "w") as f:
             f.write(str(best_model))
-        # graph_path = "graph_snapshot.graphml"
-        # nx.write_graphml(graph, graph_path)
 
         mlflow.log_artifact("model_summary.txt")
         mlflow.log_artifact("model_architecture.txt")
-        # mlflow.log_artifact(graph_path)
+
+        input_schema = Schema(
+            [
+                TensorSpec(
+                    type=np.dtype(np.float32),
+                    shape=(-1, input_dim),
+                    name="node_feature",
+                ),
+                TensorSpec(type=np.dtype(np.int64), shape=(2, -1), name="edge_index"),
+                TensorSpec(
+                    type=np.dtype(np.int64), shape=(2, -1), name="edge_label_index"
+                ),
+            ]
+        )
+        output_schema = Schema(
+            [TensorSpec(type=np.dtype(np.float32), shape=(-1,), name="logits")]
+        )
+        signature = ModelSignature(inputs=input_schema, outputs=output_schema)
+        mlflow.pytorch.log_model(
+            best_model,
+            name="HateBERT - GCN",
+            signature=signature,
+        )
 
         best_train_scores = test(best_model, dataloaders["train"], args)
         best_val_scores = test(best_model, dataloaders["val"], args)
@@ -319,8 +342,8 @@ def create_graph(data: pl.DataFrame) -> nx.Graph:
 
         tweet_features = torch.tensor(
             [
-                row["retweet_count"],
                 row["favorite_count"],
+                row["retweet_count"],
                 row["bookmark_count"],
                 row["reply_count"],
                 row["quote_count"],

@@ -10,8 +10,8 @@ class HateBERT(torch.nn.Module):
     def __init__(self, input_size, hidden_size):
         super(HateBERT, self).__init__()
 
-        self.conv1 = SAGEConv(input_size, hidden_size)
-        self.conv2 = SAGEConv(hidden_size, hidden_size)
+        self.conv1 = GCNConv(input_size, hidden_size)
+        self.conv2 = GCNConv(hidden_size, hidden_size)
         self.bn1 = nn.BatchNorm1d(hidden_size)
         self.bn2 = nn.BatchNorm1d(hidden_size)
         self.loss_fn = torch.nn.BCEWithLogitsLoss()
