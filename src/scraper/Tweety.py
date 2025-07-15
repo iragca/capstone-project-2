@@ -158,6 +158,9 @@ class TweetyScraper:
                         validated_tweets.append(tweet_data)
                 else:
                     logger.warning(f"Unknown tweet type: {type(tweet)}")
+        except KeyboardInterrupt:
+            logger.info("Scraping interrupted by user.")
+            exit(0)
         except Exception as e:
             logger.error(f"Error processing tweets for user {username}: {e}")
 
