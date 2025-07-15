@@ -4,7 +4,6 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-
 class Tweet(BaseModel):
     tweet_id: str
     text: str

@@ -18,4 +18,5 @@ class User(BaseModel):
     bot: bool
     location: str
     description: str
+    fetched_tweets: bool = False
     creation_date: str

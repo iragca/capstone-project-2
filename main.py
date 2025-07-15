@@ -18,28 +18,69 @@ from src.config import (
     logger,
 )
 from src.db import DB, PBWarehouse
-from src.models import Tweet
+from src.models import Tweet, User
 from src.scraper import RapidApi, TweetyScraper
-from src.utils import get_tweet_replies, get_user_tweets
+from src.utils import get_tweet_replies
 
 cli = Typer()
 
 
 @cli.command()
-def get_all_users_tweets(max_requests: int = 100) -> None:
-    user_id = "190751291"
-    username = "chekmate111"
+def get_all_users_tweets() -> None:
+    scraper = TweetyScraper(previous_session=True)
+    pb = PBWarehouse()
 
-    data = get_user_tweets(
-        user_id,
-        username,
-        Settings.OLD_BIRD_USERS_CONTINUATION_TOKEN,
-        max_requests,
+    filter_params = (
+        "creation_date <= '2020-07-24' &&"
+        "creation_date >= '2020-03-26' &&"
+        "is_reply_to_blm = TRUE"
     )
-    print(type(data), len(data))
 
-    # if data[0]:
-    #     print(data)
+    tweetsRecords: list[Record] = pb.client.collection("tweets_v2").get_full_list(
+        query_params={"filter": filter_params}
+    )
+
+    TWEETS_PER_PAGE = 20
+    for record in tqdm(
+        tweetsRecords, desc="Fetching user tweets", unit="user", ncols=100
+    ):
+        tweet = Tweet(**record.__dict__)
+
+        user_id = tweet.user_id
+        retrieved_user = pb.get_user_by_id(user_id)
+        user: User = User(**retrieved_user)
+        
+        username = user.username
+        number_of_tweets = user.number_of_tweets
+
+        if user.fetched_tweets:
+            logger.info(f"User '{username}' already has fetched tweets. Skipping.")
+            continue
+
+        logger.info(f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)")
+        tweets: list[dict] = asyncio.run(
+            scraper.get_tweets_of_user(
+                username, pages=number_of_tweets // TWEETS_PER_PAGE
+            )
+        )
+        logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
+        with open(
+            INTERIM_DATA_DIR / "tweety" / f"{username}.json", "w", encoding="utf-8"
+        ) as f:
+            json.dump(
+                tweets,
+                f,
+                ensure_ascii=False,
+                indent=4,
+            )
+
+        pb.client.collection("tweet_users").update(
+            retrieved_user.id,
+            {
+                "fetched_tweets": True,
+            },
+        )
+        logger.info(f"Updated user {username} with {len(tweets)} tweets.")
 
 
 @cli.command()
