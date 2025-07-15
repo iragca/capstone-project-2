@@ -38,7 +38,7 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
     tweetsRecords: list[Record] = pb.client.collection("tweets_v2").get_full_list(
         query_params={"filter": filter_params}
     )
-
+    TWEETS_PER_PAGE = 20
     for record in tqdm(
         tweetsRecords, desc="Fetching user tweets", unit="user", ncols=100
     ):
@@ -58,11 +58,12 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
         logger.info(
             f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)"
         )
+        
         tweets = get_user_tweets(
             user_id,
             username,
             Settings.OLD_BIRD_USERS_CONTINUATION_TOKEN,
-            max_requests=max_requests if max_requests else number_of_tweets // 20,
+            max_requests=max_requests if max_requests else number_of_tweets // TWEETS_PER_PAGE,
         )
         logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
 
@@ -87,7 +88,7 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
 
 
 @cli.command()
-def get_all_users_tweets() -> None:
+def get_all_users_tweets_by_tweety(max_requests: int | None = None) -> None:
     scraper = TweetyScraper(previous_session=True)
     pb = PBWarehouse()
 
@@ -123,7 +124,7 @@ def get_all_users_tweets() -> None:
         )
         tweets: list[dict] = asyncio.run(
             scraper.get_tweets_of_user(
-                username, pages=number_of_tweets // TWEETS_PER_PAGE
+                username, pages=max_requests if max_requests else number_of_tweets // TWEETS_PER_PAGE
             )
         )
         logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
@@ -138,7 +139,7 @@ def get_all_users_tweets() -> None:
             )
 
         pb.client.collection("tweet_users").update(
-            retrieved_user.id,
+            retrieved_user["id"],
             {
                 "fetched_tweets": True,
             },

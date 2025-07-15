@@ -131,7 +131,7 @@ class TweetyScraper:
         app: TwitterAsync = await self.login()
 
         tweets: list[TweetyTweet] = await app.get_tweets(
-            username, wait_time=10, pages=pages
+            username, wait_time=60, pages=pages
         )
 
         if not tweets:
