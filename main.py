@@ -20,9 +20,70 @@ from src.config import (
 from src.db import DB, PBWarehouse
 from src.models import Tweet, User
 from src.scraper import RapidApi, TweetyScraper
-from src.utils import get_tweet_replies
+from src.utils import get_tweet_replies, get_user_tweets
 
 cli = Typer()
+
+
+@cli.command()
+def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
+    pb = PBWarehouse()
+
+    filter_params = (
+        "creation_date <= '2020-07-24' &&"
+        "creation_date >= '2020-03-26' &&"
+        "is_reply_to_blm = TRUE"
+    )
+
+    tweetsRecords: list[Record] = pb.client.collection("tweets_v2").get_full_list(
+        query_params={"filter": filter_params}
+    )
+
+    for record in tqdm(
+        tweetsRecords, desc="Fetching user tweets", unit="user", ncols=100
+    ):
+        tweet = Tweet(**record.__dict__)
+
+        user_id = tweet.user_id
+        retrieved_user = pb.get_user_by_id(user_id)
+        user: User = User(**retrieved_user)
+
+        username = user.username
+        number_of_tweets = user.number_of_tweets
+
+        if user.fetched_tweets:
+            logger.info(f"User '{username}' already has fetched tweets. Skipping.")
+            continue
+
+        logger.info(
+            f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)"
+        )
+        tweets = get_user_tweets(
+            user_id,
+            username,
+            Settings.OLD_BIRD_USERS_CONTINUATION_TOKEN,
+            max_requests=max_requests if max_requests else number_of_tweets // 20,
+        )
+        logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
+
+        try:
+            for tweet in tweets:
+                json_filename = (
+                    INTERIM_DATA_DIR / "oldbird" / f"{tweet['tweet_id']}.json"
+                )
+                with open(json_filename, "w", encoding="utf-8") as f:
+                    json.dump(tweet, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            logger.error(f"Error saving tweets for user {username}: {e}")
+            continue
+
+        pb.client.collection("tweet_users").update(
+            retrieved_user["id"],
+            {
+                "fetched_tweets": True,
+            },
+        )
+        logger.info(f"Updated user {username} with {len(tweets)} tweets.")
 
 
 @cli.command()
@@ -49,7 +110,7 @@ def get_all_users_tweets() -> None:
         user_id = tweet.user_id
         retrieved_user = pb.get_user_by_id(user_id)
         user: User = User(**retrieved_user)
-        
+
         username = user.username
         number_of_tweets = user.number_of_tweets
 
@@ -57,7 +118,9 @@ def get_all_users_tweets() -> None:
             logger.info(f"User '{username}' already has fetched tweets. Skipping.")
             continue
 
-        logger.info(f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)")
+        logger.info(
+            f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)"
+        )
         tweets: list[dict] = asyncio.run(
             scraper.get_tweets_of_user(
                 username, pages=number_of_tweets // TWEETS_PER_PAGE
