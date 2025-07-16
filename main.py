@@ -596,5 +596,24 @@ def view_schema() -> None:
     pprint(schema)
 
 
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
+def install_dependencies() -> None:
+    import torch
+
+    torch_version = str(torch.__version__)
+    scatter_src = f"https://pytorch-geometric.com/whl/torch-{torch_version}.html"
+    sparse_src = f"https://pytorch-geometric.com/whl/torch-{torch_version}.html"
+
+    subprocess.run(
+        ["uv", "run", "pip", "install", "torch-scatter", "-f", scatter_src],
+        check=True,
+    )
+    subprocess.run(
+        ["uv", "run", "pip", "install", "torch-sparse", "-f", sparse_src],
+        check=True,
+    )
+
+
 if __name__ == "__main__":
     cli()
