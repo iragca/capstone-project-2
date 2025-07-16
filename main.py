@@ -15,6 +15,7 @@ from typer import Option, Typer
 from src.config import (
     EXTERNAL_DATA_DIR,
     INTERIM_DATA_DIR,
+    LOGGER_DIR,
     PROJECT_ROOT,
     Settings,
     logger,
@@ -22,16 +23,15 @@ from src.config import (
 from src.db import DB, PBWarehouse
 from src.models import Tweet, User
 from src.scraper import RapidApi, TweetyScraper
-from src.utils import ensure_path, get_tweet_replies, get_user_tweets
+from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
 
 cli = Typer()
 
 
 @cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
 def ingest_tweety_tweets() -> None:
     """Ingest tweets from Tweety into the PocketBase warehouse."""
-    logger_path = ensure_path(PROJECT_ROOT / "reports" / "logs")
-    logger.add(logger_path / "ingest_tweety_tweets.logs")
     pb = PBWarehouse()
     staging_area = INTERIM_DATA_DIR / "tweety"
 

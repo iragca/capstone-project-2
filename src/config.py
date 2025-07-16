@@ -16,6 +16,7 @@ EXTERNAL_DATA_DIR: Path = DATA_DIR / "external"
 INTERIM_DATA_DIR: Path = DATA_DIR / "interim"
 PROCESSED_DATA_DIR: Path = DATA_DIR / "processed"
 MPL_STYLE_DIR: Path = PROJECT_ROOT / "src" / "matplotlib"
+LOGGER_DIR: Path = PROJECT_ROOT / "reports" / "logs"
 
 if not ENV_FILE.exists():
     logger.warning(
@@ -49,10 +50,12 @@ class Settings(Enum):
     X_TOTP = PYOTP.now()
     X_RAPIDAPI_KEY = os.getenv("X_RAPIDAPI_KEY", "")
     OLD_BIRD_CONTINUATION_TOKEN = os.getenv("OLD_BIRD_CONTINUATION_TOKEN", "")
-    OLD_BIRD_USERS_CONTINUATION_TOKEN = os.getenv("OLD_BIRD_USERS_CONTINUATION_TOKEN", "")
-    POCKETBASE_EMAIL= os.getenv("POCKETBASE_EMAIL", "")
-    POCKETBASE_PASSWORD= os.getenv("POCKETBASE_PASSWORD", "")
-    POCKETBASE_URL= os.getenv("POCKETBASE_URL", "")
+    OLD_BIRD_USERS_CONTINUATION_TOKEN = os.getenv(
+        "OLD_BIRD_USERS_CONTINUATION_TOKEN", ""
+    )
+    POCKETBASE_EMAIL = os.getenv("POCKETBASE_EMAIL", "")
+    POCKETBASE_PASSWORD = os.getenv("POCKETBASE_PASSWORD", "")
+    POCKETBASE_URL = os.getenv("POCKETBASE_URL", "")
     WANDB_API_KEY = os.getenv("WANDB_API_KEY", "")
     WANDB_ENTITY = os.getenv("WANDB_ENTITY", "")
 

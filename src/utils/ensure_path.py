@@ -15,5 +15,6 @@ def ensure_path(path: Path) -> None:
 
     if not path.exists():
         path.mkdir(parents=True, exist_ok=True)
+        print(f"Created directory: {path}")
 
     return path
