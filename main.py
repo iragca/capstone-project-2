@@ -1,15 +1,17 @@
 import asyncio
 import calendar
 import json
+import subprocess
 from itertools import count
 from pprint import pprint
 
 import polars as pl
 import requests
+from pocketbase.errors import ClientResponseError
 from pocketbase.models import Record
 from tqdm import tqdm
 from typer import Option, Typer
-import subprocess
+
 from src.config import (
     EXTERNAL_DATA_DIR,
     INTERIM_DATA_DIR,
@@ -20,9 +22,55 @@ from src.config import (
 from src.db import DB, PBWarehouse
 from src.models import Tweet, User
 from src.scraper import RapidApi, TweetyScraper
-from src.utils import get_tweet_replies, get_user_tweets, ensure_path
+from src.utils import ensure_path, get_tweet_replies, get_user_tweets
 
 cli = Typer()
+
+
+@cli.command()
+def ingest_tweety_tweets() -> None:
+    """Ingest tweets from Tweety into the PocketBase warehouse."""
+    logger_path = ensure_path(PROJECT_ROOT / "reports" / "logs")
+    logger.add(logger_path / "ingest_tweety_tweets.logs")
+    pb = PBWarehouse()
+    staging_area = INTERIM_DATA_DIR / "tweety"
+
+    for user_tweets_file in staging_area.iterdir():
+        if user_tweets_file.suffix != ".json":
+            logger.warning(f"Skipping non-JSON file: {user_tweets_file.name}")
+            continue
+
+        try:
+            with open(user_tweets_file, "r", encoding="utf-8") as f:
+                tweets = json.load(f)
+
+            assert isinstance(tweets, list), (
+                f"Tweets data must be a list, got {type(tweets)}"
+            )
+
+            for tweet in tweets:
+                assert isinstance(tweet, dict), (
+                    f"Each tweet must be a dictionary, got {type(tweet)}"
+                )
+                assert "tweet_id" in tweet, "Tweet data must contain 'tweet_id'"
+                pb.client.collection("tweets_v2").create(tweet)
+
+            logger.success(f"Successfully ingested tweets from {user_tweets_file.name}")
+
+        except ClientResponseError as e:
+            if "validation_not_unique" in str(e):
+                logger.info(
+                    f"Tweet with ID {tweet['tweet_id']} already exists. Skipping."
+                )
+                continue
+            else:
+                logger.error(
+                    f"ClientResponseError while ingesting {user_tweets_file.name}: {e}"
+                )
+        except Exception as e:
+            logger.error(
+                f"Error ingesting {user_tweets_file.name}: {type(e).__name__} - {e}"
+            )
 
 
 @cli.command()
@@ -58,12 +106,14 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
         logger.info(
             f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)"
         )
-        
+
         tweets = get_user_tweets(
             user_id,
             username,
             Settings.OLD_BIRD_USERS_CONTINUATION_TOKEN,
-            max_requests=max_requests if max_requests else number_of_tweets // TWEETS_PER_PAGE,
+            max_requests=max_requests
+            if max_requests
+            else number_of_tweets // TWEETS_PER_PAGE,
         )
         logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
 
@@ -126,7 +176,10 @@ def get_all_users_tweets_by_tweety(max_requests: int | None = None) -> None:
         )
         tweets: list[dict] = asyncio.run(
             scraper.get_tweets_of_user(
-                username, pages=max_requests if max_requests else number_of_tweets // TWEETS_PER_PAGE
+                username,
+                pages=max_requests
+                if max_requests
+                else number_of_tweets // TWEETS_PER_PAGE,
             )
         )
         logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
