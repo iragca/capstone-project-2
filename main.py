@@ -354,38 +354,6 @@ def update_reply_links() -> None:
 
 
 @cli.command()
-def update_migrations() -> None:
-    logger.add(PROJECT_ROOT / "reports" / "logs" / "migrations.logs")
-
-    pb = PBWarehouse()
-    records: list[Record] = pb.client.collection("tweets").get_full_list()
-
-    for record in tqdm(records, desc="Updating tweets", unit="tweet"):
-        try:
-            update_record = pb.client.collection("tweets_v2").get_list(
-                1, 1, {"filter": f"tweet_id = '{record.tweet_id}'"}
-            )
-
-            if not update_record.items:
-                logger.warning(
-                    f"No record found for tweet_id {record.tweet_id}. Skipping."
-                )
-                continue
-            pb.client.collection("tweets_v2").update(
-                update_record.items[0].id,
-                {
-                    "is_annotated": record.is_annotated,
-                    "is_extremist": record.is_extremist,
-                },
-            )
-        except Exception as e:
-            logger.error(f"Error updating tweet {record.id}: {type(e).__name__} - {e}")
-            continue
-
-    logger.success("All tweets updated successfully.")
-
-
-@cli.command()
 def update_is_reply_to_blm() -> None:
     logger.add(PROJECT_ROOT / "reports" / "logs" / "update_is_reply.logs")
 
