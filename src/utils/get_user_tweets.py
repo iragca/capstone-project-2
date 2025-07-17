@@ -27,8 +27,19 @@ def get_user_tweets(user_id: str, username: str, cont_token: str, max_requests: 
                 raise Exception(
                     f"Error fetching tweets: {response.status_code} - {response.text}"
                 )
+            
 
             data = response.json()
+            results = data.get("results", [])
+
+            if not results:
+                print(f"No more tweets found for user {user_id}.")
+                break
+
+            if len(results) == 0:
+                print(f"No tweets found for user {user_id}.")
+                break
+
             tweets.extend(data.get("results", []))
             cont_token = data.get("continuation_token", "")
 
