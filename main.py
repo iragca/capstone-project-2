@@ -141,7 +141,9 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
 def get_all_users_tweets_by_tweety(max_requests: int | None = None) -> None:
     logger_path = ensure_path(PROJECT_ROOT / "reports" / "logs")
     logger.add(logger_path / "get_all_users_tweets_by_tweety.logs")
-    scraper = TweetyScraper(previous_session=True)
+    scraper = TweetyScraper(
+        previous_session=(PROJECT_ROOT / "session.tw_session").exists()
+    )
     pb = PBWarehouse()
 
     filter_params = (

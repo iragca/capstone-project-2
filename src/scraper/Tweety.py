@@ -4,8 +4,8 @@ from tweety import TwitterAsync
 from tweety.types import Search, SelfThread
 from tweety.types import Tweet as TweetyTweet
 
-from src.config import logger
 from src.config import Settings as s
+from src.config import logger
 from src.models import Tweet
 
 
@@ -25,9 +25,7 @@ class TweetyScraper:
             assert USERNAME and PASSWORD and TOTP, (
                 "Username, password, and TOTP must be provided in the settings."
             )
-            await app.sign_in(
-                USERNAME, s.X_PASSWORD.value, extra=s.X_TOTP.value
-            )
+            await app.sign_in(USERNAME, s.X_PASSWORD.value, extra=s.X_TOTP.value)
 
         return app
 
