@@ -4,7 +4,7 @@ from ..config import logger
 from functools import wraps
 
 
-def function_logger(LOGGER_DIR: Path = Path("logs")):
+def function_logger(LOGGER_DIR: Path = Path("logs"), level: str = "INFO"):
     """
     A decorator to log the execution of a function.
 
@@ -23,7 +23,7 @@ def function_logger(LOGGER_DIR: Path = Path("logs")):
         @wraps(func)
         def wrapper(*args, **kwargs):
             logger.add(
-                LOGGER_DIR / f"{func.__name__}.log", rotation="10 MB", level="INFO"
+                LOGGER_DIR / f"{func.__name__}.log", rotation="10 MB", level=level
             )
             logger.info(f"Executing {func.__name__}({args=}, {kwargs=})")
 
