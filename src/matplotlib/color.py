@@ -2,7 +2,7 @@ from enum import Enum
 
 import matplotlib.colors as mcolors
 
-from machine_learning.config import logger
+from ..config import logger
 
 
 class Color(Enum):
