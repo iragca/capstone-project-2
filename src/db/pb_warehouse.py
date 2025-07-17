@@ -1,8 +1,9 @@
 from pocketbase import PocketBase
+from pocketbase.errors import ClientResponseError
 from pocketbase.models import Record
 
-from src.config import Settings as s
-from src.models import Tweet, User
+from ..config import Settings as s, logger
+from ..models import Tweet, User
 
 
 class PBWarehouse:
@@ -16,11 +17,31 @@ class PBWarehouse:
         assert isinstance(tweet, dict), "Input must be a dictionary"
         processed_tweet = self._process_tweet(tweet)
         processed_user = self._process_user(tweet)
-        record_tweet = self.client.collection("tweets_v2").create(processed_tweet)
-        record_user = self.client.collection("tweet_users").create(processed_user)
+
+        try:
+            record_tweet = self.client.collection("tweets_v2").create(processed_tweet)
+            logger.success(
+                f"Successfully created tweet record with ID: {record_tweet.id}"
+            )
+        except ClientResponseError as e:
+            if "validation_not_unique" in str(e):
+                logger.info(
+                    f"Tweet with ID {processed_tweet['tweet_id']} already exists. Skipping."
+                )
+
+        try:
+            record_user = self.client.collection("tweet_users").create(processed_user)
+            logger.success(
+                f"Successfully created user record with ID: {record_user.id}"
+            )
+        except ClientResponseError as e:
+            if "validation_not_unique" in str(e):
+                logger.info(
+                    f"User with ID {processed_user['user_id']} already exists. Skipping."
+                )
         return {
-            "record_tweet": record_tweet,
-            "record_user": record_user,
+            "record_tweet": record_tweet if record_tweet else None,
+            "record_user": record_user if record_user else None,
         }
 
     @staticmethod

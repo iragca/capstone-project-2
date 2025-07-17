@@ -432,11 +432,9 @@ def get_replies() -> None:
 
 
 @cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="ERROR")
 def ingest_data() -> None:
     """Ingest data from stagign area to warehouse."""
-    logger.add(PROJECT_ROOT / "reports" / "logs" / "ingest_data.logs")
-    logger.info("Starting data ingestion process...")
-
     pb_client = PBWarehouse()
     staging_area = INTERIM_DATA_DIR / "oldbird"
     logger.info(f"Staging area: {staging_area}")
@@ -456,8 +454,6 @@ def ingest_data() -> None:
                     pb_client.ingest_tweet(tweet_data["quoted_status"])
 
                 pb_client.ingest_tweet(tweet_data)
-
-                logger.info(f"Successfully ingested {tweet_file.name}")
             except Exception as e:
                 logger.error(
                     f"Error ingesting {tweet_file.name}: {type(e).__name__} - {e}"
