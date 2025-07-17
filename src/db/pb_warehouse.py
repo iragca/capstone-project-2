@@ -18,6 +18,9 @@ class PBWarehouse:
         processed_tweet = self._process_tweet(tweet)
         processed_user = self._process_user(tweet)
 
+        record_tweet: Record = None
+        record_user: Record = None
+
         try:
             record_tweet = self.client.collection("tweets_v2").create(processed_tweet)
             logger.success(
@@ -40,8 +43,8 @@ class PBWarehouse:
                     f"User with ID {processed_user['user_id']} already exists. Skipping."
                 )
         return {
-            "record_tweet": record_tweet if record_tweet else None,
-            "record_user": record_user if record_user else None,
+            "record_tweet": record_tweet,
+            "record_user": record_user,
         }
 
     def update_tweet_community_note(self, tweet: dict) -> Record:
