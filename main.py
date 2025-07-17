@@ -587,7 +587,8 @@ def tweety_trends() -> None:
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
-def install_dependencies() -> None:
+def install_torch_geometric_dependencies() -> None:
+    """Install necessary dependencies for PyTorch Geometric."""
     import torch
 
     torch_version = str(torch.__version__)
