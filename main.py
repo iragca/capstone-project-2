@@ -70,6 +70,7 @@ def ingest_tweety_tweets() -> None:
 
 
 @cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
 def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
     pb = PBWarehouse()
 
@@ -432,7 +433,7 @@ def get_replies() -> None:
 
 
 @cli.command()
-@function_logger(LOGGER_DIR=LOGGER_DIR, level="ERROR")
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def ingest_data() -> None:
     """Ingest data from stagign area to warehouse."""
     pb_client = PBWarehouse()
