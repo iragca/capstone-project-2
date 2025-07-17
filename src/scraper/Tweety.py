@@ -25,14 +25,6 @@ class TweetyScraper:
 
         return app
 
-    def load_blm_data(self) -> pl.DataFrame:
-        BLM_DATA: pl.DataFrame = pl.read_csv(
-            EXTERNAL_DATA_DIR / "TAPS dataset" / "blacklivesmatter.txt",
-            schema={"tweetIds": pl.Utf8},
-        )
-
-        return BLM_DATA
-
     async def get_blm_trends(self) -> None:
         app: TwitterAsync = await self.login()
 
