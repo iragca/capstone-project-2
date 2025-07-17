@@ -1,11 +1,10 @@
 from pprint import pprint
 
-import polars as pl
 from tweety import TwitterAsync
 from tweety.types import Search, SelfThread
 from tweety.types import Tweet as TweetyTweet
 
-from src.config import EXTERNAL_DATA_DIR, logger
+from src.config import logger
 from src.config import Settings as s
 from src.models import Tweet
 
@@ -19,8 +18,15 @@ class TweetyScraper:
         if self.previous_session:
             await app.connect()
         else:
+            USERNAME: str = s.X_USERNAME.value
+            PASSWORD: str = s.X_PASSWORD.value
+            TOTP: int = s.X_TOTP.value
+
+            assert USERNAME and PASSWORD and TOTP, (
+                "Username, password, and TOTP must be provided in the settings."
+            )
             await app.sign_in(
-                s.X_USERNAME.value, s.X_PASSWORD.value, extra=s.X_TOTP.value
+                USERNAME, s.X_PASSWORD.value, extra=s.X_TOTP.value
             )
 
         return app
