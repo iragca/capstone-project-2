@@ -463,6 +463,36 @@ def ingest_data() -> None:
 
 
 @cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="ERROR")
+def update_tweets_with_community_notes() -> None:
+    """Update tweets with community notes."""
+    pb_client = PBWarehouse()
+    staging_area = INTERIM_DATA_DIR / "oldbird"
+
+    for tweet_file in staging_area.iterdir():
+        if tweet_file.suffix == ".json":
+            try:
+                with open(tweet_file, "r", encoding="utf-8") as f:
+                    tweet_data = json.load(f)
+
+                assert isinstance(tweet_data, dict), "Tweet data must be a dictionary"
+                assert "tweet_id" in tweet_data, "Tweet data must contain 'tweet_id'"
+
+                if tweet_data["retweet_status"]:
+                    pb_client.update_tweet_community_note(tweet_data["retweet_status"])
+                if tweet_data["quoted_status"]:
+                    pb_client.update_tweet_community_note(tweet_data["quoted_status"])
+
+                pb_client.update_tweet_community_note(tweet_data)
+            except Exception as e:
+                logger.error(
+                    f"Error updating community note for {tweet_file.name}: {type(e).__name__} - {e}"
+                )
+        else:
+            logger.warning(f"Skipping non-JSON file: {tweet_file.name}")
+
+
+@cli.command()
 def get_from_oldbird(
     num_requests: int = Option(
         100, "--num-requests", "-n", help="Number of requests to make"
