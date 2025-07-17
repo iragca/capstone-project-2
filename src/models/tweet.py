@@ -22,7 +22,7 @@ class Tweet(BaseModel):
     conversation_id: str
     retweet_status_id: Optional[str]
     quoted_status_id: Optional[str]
-    community_note: Optional[str]
+    community_note: Optional[dict]
     language: str
     source: Optional[str]
     creation_date: str
