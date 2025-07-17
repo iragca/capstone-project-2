@@ -162,8 +162,7 @@ figure.facecolor: ffffff  # white
 
 ### Fonts
 mathtext.fontset : cm
-font.family: sans-serif
-font.serif: Computer Modern Sans Serif, helvet, arial
+font.sans-serif: DejaVu Sans, Helvetica, Arial
 
 
 ## ***************************************************************************
