@@ -2,10 +2,8 @@ import asyncio
 import calendar
 import json
 import subprocess
-from itertools import count
 from pprint import pprint
 
-import polars as pl
 import requests
 from pocketbase.errors import ClientResponseError
 from pocketbase.models import Record
@@ -13,7 +11,6 @@ from tqdm import tqdm
 from typer import Option, Typer
 
 from src.config import (
-    EXTERNAL_DATA_DIR,
     INTERIM_DATA_DIR,
     LOGGER_DIR,
     PROJECT_ROOT,
@@ -22,7 +19,7 @@ from src.config import (
 )
 from src.db import DB, PBWarehouse
 from src.models import Tweet, User
-from src.scraper import RapidApi, TweetyScraper
+from src.scraper import TweetyScraper
 from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
 
 cli = Typer()
