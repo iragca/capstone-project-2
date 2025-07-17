@@ -624,11 +624,11 @@ def install_torch_geometric_dependencies() -> None:
     sparse_src = f"https://pytorch-geometric.com/whl/torch-{torch_version}.html"
 
     subprocess.run(
-        ["uv", "run", "pip", "install", "torch-scatter", "-f", scatter_src],
+        ["uv", "pip", "install", "torch-scatter", "-f", scatter_src],
         check=True,
     )
     subprocess.run(
-        ["uv", "run", "pip", "install", "torch-sparse", "-f", sparse_src],
+        ["uv", "pip", "install", "torch-sparse", "-f", sparse_src],
         check=True,
     )
 
