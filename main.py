@@ -80,21 +80,25 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
         "is_reply_to_blm = TRUE"
     )
 
+    # Get all tweets from the dataset first
     tweetsRecords: list[Record] = pb.client.collection("tweets_v2").get_full_list(
         query_params={"filter": filter_params}
     )
     TWEETS_PER_PAGE = 20
+
+    # Get all users that exist in the dataset
+    # Then get their tweets
     for record in tqdm(
         tweetsRecords, desc="Fetching user tweets", unit="user", ncols=100
     ):
         tweet = Tweet(**record.__dict__)
 
-        user_id = tweet.user_id
-        retrieved_user = pb.get_user_by_id(user_id)
+        user_id: str = tweet.user_id
+        retrieved_user: dict = pb.get_user_by_id(user_id)
         user: User = User(**retrieved_user)
 
-        username = user.username
-        number_of_tweets = user.number_of_tweets
+        username: str = user.username
+        number_of_tweets: int = user.number_of_tweets
 
         if user.fetched_tweets:
             logger.info(f"User '{username}' already has fetched tweets. Skipping.")
@@ -147,22 +151,26 @@ def get_all_users_tweets_by_tweety(max_requests: int | None = None) -> None:
         "is_reply_to_blm = TRUE"
     )
 
+    # Get all tweets from the dataset first
     tweetsRecords: list[Record] = pb.client.collection("tweets_v2").get_full_list(
         query_params={"filter": filter_params}
     )
 
     TWEETS_PER_PAGE = 20
+
+    # Get all users that exist in the dataset
+    # Then get their tweets
     for record in tqdm(
         tweetsRecords, desc="Fetching user tweets", unit="user", ncols=100
     ):
         tweet = Tweet(**record.__dict__)
 
-        user_id = tweet.user_id
-        retrieved_user = pb.get_user_by_id(user_id)
+        user_id: str = tweet.user_id
+        retrieved_user: dict = pb.get_user_by_id(user_id)
         user: User = User(**retrieved_user)
 
-        username = user.username
-        number_of_tweets = user.number_of_tweets
+        username: str = user.username
+        number_of_tweets: int = user.number_of_tweets
 
         if user.fetched_tweets:
             logger.info(f"User '{username}' already has fetched tweets. Skipping.")
