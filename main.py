@@ -2,7 +2,6 @@ import asyncio
 import calendar
 import json
 import subprocess
-from pprint import pprint
 
 import requests
 from pocketbase.errors import ClientResponseError
@@ -17,7 +16,7 @@ from src.config import (
     Settings,
     logger,
 )
-from src.db import DB, PBWarehouse
+from src.db import PBWarehouse
 from src.models import Tweet, User
 from src.scraper import TweetyScraper
 from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
@@ -584,21 +583,6 @@ def tweety_trends() -> None:
     """Run the Tweety script."""
     scraper = TweetyScraper(previous_session=True)
     asyncio.run(scraper.get_blm_trends())
-
-
-@cli.command()
-def view_db_data() -> None:
-    db = DB()
-    db.view_data()
-    db.close()
-
-
-@cli.command()
-def view_schema() -> None:
-    """View the schema of the tweets table."""
-    db = DB()
-    schema = db.connection.execute("DESCRIBE tweets").fetchall()
-    pprint(schema)
 
 
 @cli.command()
