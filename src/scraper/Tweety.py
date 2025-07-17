@@ -1,8 +1,6 @@
 from pprint import pprint
-from time import sleep
 
 import polars as pl
-from tqdm import tqdm
 from tweety import TwitterAsync
 from tweety.types import Search, SelfThread
 from tweety.types import Tweet as TweetyTweet
