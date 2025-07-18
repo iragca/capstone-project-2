@@ -179,7 +179,7 @@ def get_all_users_tweets_by_tweety(
             if not tweets:
                 logger.warning(f"No tweets found for user {user.username}.")
                 pb.client.collection("tweet_users").update(
-                    userRecord.id, {"fetched_tweets": True}
+                    userRecord.id, {"status": "fetched"}
                 )
                 continue
 
