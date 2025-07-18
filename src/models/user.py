@@ -1,6 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel
+from typing import Literal
 
 
 class User(BaseModel):
@@ -19,4 +20,5 @@ class User(BaseModel):
     location: Optional[str]
     description: str
     fetched_tweets: bool = False
+    status: Literal["fetched", "not fetched", "fetching"] = "not fetched"
     creation_date: Optional[str]

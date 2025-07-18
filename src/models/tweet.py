@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Optional
 
+from typing import Literal
 from pydantic import BaseModel
+
 
 class Tweet(BaseModel):
     tweet_id: str
@@ -29,3 +31,4 @@ class Tweet(BaseModel):
     has_blm_hashtag: bool
     fetched_replies: Optional[bool] = False
     is_reply_to_blm: Optional[bool] = None
+    is_hateful: Optional[Literal[0, 1, 2]] = None

@@ -20,6 +20,7 @@ from src.db import PBWarehouse
 from src.models import Tweet, User
 from src.scraper import TweetyScraper
 from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
+from src.utils.training import load_data
 
 cli = Typer()
 
@@ -560,6 +561,42 @@ def get_from_oldbird(
 
                 tweet_list = list(staging.iterdir())
                 logger.info(f"Total tweets fetched: {len(tweet_list) - 1}")
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
+def update_tweets_with_is_hateful() -> None:
+    """Update tweets with the is_hateful field."""
+    pb = PBWarehouse()
+    data = load_data()
+
+    for tweet in data.iter_rows(named=True):
+        tweet_id = tweet["tweet_id"]
+        is_hateful = tweet["is_hateful"]
+
+        if is_hateful is None:
+            logger.warning(f"Tweet {tweet_id} has no is_hateful value. Skipping.")
+            continue
+
+        try:
+            record = pb.client.collection("tweets_v2").get_first_list_item(
+                f"tweet_id = '{tweet_id}'"
+            )
+
+            if not record:
+                logger.warning(
+                    f"Tweet with ID {tweet_id} not found in the database. Skipping."
+                )
+                continue
+
+            pb.client.collection("tweets_v2").update(
+                record.id, {"is_hateful": is_hateful}
+            )
+            logger.info(f"Updated tweet {tweet_id} with is_hateful: {is_hateful}")
+
+        except Exception as e:
+            logger.error(f"Error updating tweet {tweet_id}: {type(e).__name__} - {e}")
+            continue
 
 
 @cli.command()
