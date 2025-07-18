@@ -4,6 +4,7 @@ import json
 import subprocess
 
 import requests
+import torch
 from pocketbase.errors import ClientResponseError
 from pocketbase.models import Record
 from tqdm import tqdm
@@ -561,6 +562,54 @@ def get_from_oldbird(
 
                 tweet_list = list(staging.iterdir())
                 logger.info(f"Total tweets fetched: {len(tweet_list) - 1}")
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
+def classify_data() -> None:
+    """Classify data using HateBERT."""
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+    pb = PBWarehouse()
+
+    model_name = "Hate-speech-CNERG/bert-base-uncased-hatexplain"
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name)
+
+    def classify_text(text: str) -> int:
+        inputs = tokenizer(text, return_tensors="pt", truncation=True)
+        outputs = model(**inputs)
+        logits = outputs.logits
+        probs = torch.nn.functional.softmax(logits, dim=-1)
+        predicted_class = torch.argmax(probs, dim=-1)
+        return predicted_class.item()
+
+    have_data = True
+
+    try:
+        while have_data:
+            tweetRecord = pb.get_tweet_with_no_classification()
+            tweet = Tweet(**tweetRecord.__dict__)
+            logger.info(f"Classifying tweet: {tweet.tweet_id}")
+            text_class = classify_text(tweet.text)
+            pb.client.collection("tweets_v2").update(
+                tweetRecord.id,
+                {
+                    "is_hateful": text_class,
+                },
+            )
+            logger.success(
+                f"Classified tweet {tweet.tweet_id} with class {text_class}."
+            )
+    except ClientResponseError as e:
+        if "The requested resource wasn't found." in str(e):
+            logger.info("No more tweets to classify.")
+            have_data = False
+    except Exception as e:
+        logger.error(f"Error classifying tweet: {type(e).__name__} - {e}")
+        have_data = False
+        return
 
 
 @cli.command()

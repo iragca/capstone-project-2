@@ -31,4 +31,4 @@ class Tweet(BaseModel):
     has_blm_hashtag: bool
     fetched_replies: Optional[bool] = False
     is_reply_to_blm: Optional[bool] = None
-    is_hateful: Optional[Literal[0, 1, 2]] = None
+    is_hateful: Optional[Literal[0, 1, 2, ""]] = None

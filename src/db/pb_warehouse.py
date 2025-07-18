@@ -105,3 +105,10 @@ class PBWarehouse:
         if user.items and len(user.items) > 0:
             return user.items[0].__dict__
         return {}
+
+    def get_tweet_with_no_classification(self) -> Record:
+        """Get a tweet that has not been classified yet."""
+        tweetRecord = self.client.collection("tweets_v2").get_first_list_item(
+            "is_hateful = NULL",
+        )
+        return tweetRecord if tweetRecord else None
