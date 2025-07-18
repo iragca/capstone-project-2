@@ -142,7 +142,9 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
-def get_all_users_tweets_by_tweety(max_requests: int | None = None) -> None:
+def get_all_users_tweets_by_tweety(
+    max_requests: int | None = None, wait_time: int = 30
+) -> None:
     pb = PBWarehouse()
     scraper = TweetyScraper(
         previous_session=(PROJECT_ROOT / "session.tw_session").exists()
@@ -170,6 +172,7 @@ def get_all_users_tweets_by_tweety(max_requests: int | None = None) -> None:
                 scraper.get_tweets_of_user(
                     username=user.username,
                     pages=max_requests if max_requests else pages,
+                    wait_time=wait_time,
                 )
             )
 

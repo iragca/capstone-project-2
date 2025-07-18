@@ -36,11 +36,11 @@ class TweetyScraper:
 
         data.to_xlsx()
 
-    async def get_tweets_of_user(self, username: str, pages: int = 100) -> list[dict]:
+    async def get_tweets_of_user(self, username: str, pages: int = 100, wait_time: int = 30) -> list[dict]:
         app: TwitterAsync = await self.login()
 
         tweets: list[TweetyTweet] = await app.get_tweets(
-            username, wait_time=60, pages=pages
+            username, wait_time=wait_time, pages=pages
         )
 
         if not tweets:
