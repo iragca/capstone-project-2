@@ -96,15 +96,12 @@ class PBWarehouse:
         )
         return updated_record
 
-    def get_user_by_id(self, user_id: str) -> dict[str, any]:
+    def get_user_by_id(self, user_id: str) -> Record:
         assert isinstance(user_id, str), "user_id must be a string"
-        user = self.client.collection("tweet_users").get_list(
-            1, 1, {"filter": f"user_id = '{user_id}'"}
+        user = self.client.collection("tweet_users").get_first_list_item(
+            f"user_id = '{user_id}'"
         )
-
-        if user.items and len(user.items) > 0:
-            return user.items[0].__dict__
-        return {}
+        return user if user else None
 
     def get_tweet_with_no_classification(self) -> Record:
         """Get a tweet that has not been classified yet."""
@@ -112,3 +109,12 @@ class PBWarehouse:
             "is_hateful = NULL",
         )
         return tweetRecord if tweetRecord else None
+
+    def get_user_with_not_fetched_tweets(self) -> Record:
+        """Get a user that has 'not fetched' tweets yet."""
+        userRecord = self.client.collection("users_tweets_status").get_first_list_item(
+            "status = 'not fetched' || status = NULL",
+        )
+        userRecord = self.get_user_by_id(userRecord.user_id)
+
+        return userRecord if userRecord else None
