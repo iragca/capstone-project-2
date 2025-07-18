@@ -1,6 +1,7 @@
 import asyncio
 import calendar
 import json
+import math
 import subprocess
 
 import requests
@@ -154,7 +155,7 @@ def get_all_users_tweets_by_tweety(max_requests: int | None = None) -> None:
         try:
             userRecord: Record = pb.get_user_with_not_fetched_tweets()
             user: User = User(**userRecord.__dict__)
-            pages = user.number_of_tweets // TWEETS_PER_PAGE
+            pages = math.ceil(user.number_of_tweets / TWEETS_PER_PAGE)
 
             pb.client.collection("tweet_users").update(
                 userRecord.id, {"status": "fetching"}
