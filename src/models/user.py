@@ -19,6 +19,5 @@ class User(BaseModel):
     bot: bool
     location: Optional[str]
     description: str
-    fetched_tweets: bool = False
-    status: Literal["fetched", "not fetched", "fetching"] = "not fetched"
+    status: Literal["fetched", "not fetched", "fetching", ""] = "not fetched"
     creation_date: Optional[str]
