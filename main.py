@@ -141,77 +141,82 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
 
 
 @cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
 def get_all_users_tweets_by_tweety(max_requests: int | None = None) -> None:
-    logger_path = ensure_path(PROJECT_ROOT / "reports" / "logs")
-    logger.add(logger_path / "get_all_users_tweets_by_tweety.logs")
+    pb = PBWarehouse()
     scraper = TweetyScraper(
         previous_session=(PROJECT_ROOT / "session.tw_session").exists()
     )
-    pb = PBWarehouse()
-
-    filter_params = (
-        "creation_date <= '2020-07-24' &&"
-        "creation_date >= '2020-03-26' &&"
-        "is_reply_to_blm = TRUE"
-    )
-
-    # Get all tweets from the dataset first
-    tweetsRecords: list[Record] = pb.client.collection("tweets_v2").get_full_list(
-        query_params={"filter": filter_params}
-    )
-
+    SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "tweety")
     TWEETS_PER_PAGE = 20
 
-    # Get all users that exist in the dataset
-    # Then get their tweets
-    for record in tqdm(
-        tweetsRecords, desc="Fetching user tweets", unit="user", ncols=100
-    ):
-        tweet = Tweet(**record.__dict__)
+    have_data = True
+    while have_data:
+        try:
+            userRecord: Record = pb.get_user_with_not_fetched_tweets()
+            user: User = User(**userRecord.__dict__)
+            pages = user.number_of_tweets // TWEETS_PER_PAGE
 
-        user_id: str = tweet.user_id
-        retrieved_user: dict = pb.get_user_by_id(user_id)
-        user: User = User(**retrieved_user)
-
-        username: str = user.username
-        number_of_tweets: int = user.number_of_tweets
-
-        if user.fetched_tweets:
-            logger.info(f"User '{username}' already has fetched tweets. Skipping.")
-            continue
-
-        logger.info(
-            f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)"
-        )
-        tweets: list[dict] = asyncio.run(
-            scraper.get_tweets_of_user(
-                username,
-                pages=max_requests
-                if max_requests
-                else number_of_tweets // TWEETS_PER_PAGE,
+            pb.client.collection("tweet_users").update(
+                userRecord.id, {"status": "fetching"}
             )
-        )
-        logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
-        with open(
-            INTERIM_DATA_DIR / "tweety" / f"{username}.json", "w", encoding="utf-8"
-        ) as f:
-            json.dump(
-                tweets,
-                f,
-                ensure_ascii=False,
-                indent=4,
+            logger.info(
+                f"Fetching tweets for user: {user.username} "
+                f"(ID: {user.user_id}), tweets: {user.number_of_tweets}, pages: {pages}."
             )
 
-        pb.client.collection("tweet_users").update(
-            retrieved_user["id"],
-            {
-                "fetched_tweets": True,
-            },
-        )
-        logger.info(f"Updated user {username} with {len(tweets)} tweets.")
+            # Fetch tweets for the user
+            tweets: list[dict] = asyncio.run(
+                scraper.get_tweets_of_user(
+                    username=user.username,
+                    pages=max_requests if max_requests else pages,
+                )
+            )
+
+            if not tweets:
+                logger.warning(f"No tweets found for user {user.username}.")
+                pb.client.collection("tweet_users").update(
+                    userRecord.id, {"fetched_tweets": True}
+                )
+                continue
+
+            logger.info(
+                f"Fetched {len(tweets)} tweets for user {user.username} (ID: {user.user_id})"
+            )
+
+            # Save tweets to JSON files
+            json_filename = SAVE_DIR / f"{user.username}.json"
+            with open(json_filename, "w", encoding="utf-8") as f:
+                json.dump(tweets, f, ensure_ascii=False, indent=4)
+
+            pb.client.collection("tweet_users").update(
+                userRecord.id,
+                {
+                    "status": "fetched",
+                },
+            )
+            logger.info(f"Updated user {user.username} with {len(tweets)} tweets.")
+        except ClientResponseError as e:
+            if "The requested resource wasn't found." in str(e):
+                logger.info("No more users to fetch tweets for.")
+                pb.client.collection("tweet_users").update(
+                    userRecord.id, {"status": "not fetched"}
+                )
+                have_data = False
+            else:
+                logger.error(f"ClientResponseError: {e}")
+                pb.client.collection("tweet_users").update(
+                    userRecord.id, {"status": "not fetched"}
+                )
+                have_data = False
+        except Exception as e:
+            logger.error(f"Error fetching tweets: {type(e).__name__} - {e}")
+            have_data = False
+            pb.client.collection("tweet_users").update(
+                userRecord.id, {"status": "not fetched"}
+            )
 
 
-@cli.command()
 def grid_search(script: str = "hatebert") -> None:
     """Run grid search for hyperparameter tuning."""
     logger.add(PROJECT_ROOT / "reports" / "logs" / "grid_search.logs")
