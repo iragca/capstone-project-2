@@ -47,38 +47,6 @@ class PBWarehouse:
             "record_user": record_user,
         }
 
-    def update_tweet_community_note(self, tweet: dict) -> Record:
-        assert isinstance(tweet, dict), "Input must be a dictionary"
-        processed_tweet: dict = self._process_tweet(tweet)
-        if processed_tweet["community_note"] is None:
-            logger.info("No community note provided. Skipping update.")
-            return None
-
-        tweet_id: str = processed_tweet.get("tweet_id")
-
-        record: Record = self.client.collection("tweets_v2").get_first_list_item(
-            f"tweet_id = '{tweet_id}'"
-        )
-        if not record:
-            raise ClientResponseError(
-                f"Tweet with ID {tweet_id} not found.", status=404
-            )
-
-        record_tweet = Tweet(**record.__dict__)
-        if record_tweet.community_note:
-            logger.info(
-                f"Tweet with ID {tweet_id} already has a community note. Skipping update."
-            )
-            return record
-
-        updated_record = self.client.collection("tweets_v2").update(
-            record.id, {"community_note": processed_tweet["community_note"]}
-        )
-        logger.success(
-            f"Successfully updated community note for tweet with ID: {tweet_id}"
-        )
-        return updated_record
-
     @staticmethod
     def _process_tweet(tweet: dict) -> dict[str, any]:
         assert isinstance(tweet, dict), "Input must be a dictionary"
