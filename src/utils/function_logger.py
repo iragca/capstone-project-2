@@ -34,6 +34,7 @@ def function_logger(LOGGER_DIR: Path = Path("logs"), level: str = "INFO"):
                 raise
 
             logger.success(f"{func.__name__}() executed successfully.")
+            logger.remove()
             return result
 
         return wrapper
