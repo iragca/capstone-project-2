@@ -21,7 +21,6 @@ from src.db import PBWarehouse
 from src.models import Tweet, User
 from src.scraper import TweetyScraper
 from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
-from src.utils.training import load_data
 
 cli = Typer()
 
