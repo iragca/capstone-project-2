@@ -108,6 +108,14 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
             logger.info(f"User '{username}' already has fetched tweets. Skipping.")
             continue
 
+
+        if user.number_of_tweets > 5000:
+            logger.info(
+                f"User {username} has more than 5000 tweets ({number_of_tweets}). "
+                "Using Tweety to fetch tweets."
+            )
+            continue
+
         logger.info(
             f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)"
         )
