@@ -7,6 +7,7 @@ from tweety.types import Tweet as TweetyTweet
 from src.config import Settings as s
 from src.config import logger
 from src.models import Tweet
+from tweety.filters import SearchFilters
 
 
 class TweetyScraper:
@@ -40,7 +41,7 @@ class TweetyScraper:
         app: TwitterAsync = await self.login()
 
         tweets: list[TweetyTweet] = await app.search(
-            f"(from:{username})", wait_time=wait_time, pages=pages
+            f"(from:{username})", wait_time=wait_time, pages=pages, filter_=SearchFilters.Latest()
         )
 
         if not tweets:
