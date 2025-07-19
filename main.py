@@ -4,6 +4,7 @@ import json
 import math
 import subprocess
 
+import time
 import requests
 import torch
 from pocketbase.errors import ClientResponseError
@@ -276,6 +277,63 @@ def update_has_replies_using_reply_id() -> None:
         except Exception as e:
             logger.error(f"Error updating tweet {record.id}: {type(e).__name__} - {e}")
             continue
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
+def reset_user_fetched_tweets() -> None:
+    """Reset the fetched_tweets field for all users."""
+    pb = PBWarehouse()
+
+    user_input: str = ""
+
+    while user_input not in ["yes", "no"]:
+        user_input = (
+            input(
+                "This will reset the fetched_tweets field for all users. "
+                "Are you sure you want to continue? (yes/no): "
+            )
+            .strip()
+            .lower()
+        )
+
+        if user_input not in ["yes", "no"]:
+            logger.warning("Please enter 'yes' or 'no'.")
+            continue
+
+    if user_input == "no":
+        logger.info("Operation cancelled by user.")
+        return
+
+    for second in range(10):
+        time.sleep(1)
+        logger.info(
+            f"Resetting fetched_tweets for all users in {10 - second} seconds. Ctrl+C to cancel."
+        )
+
+    have_data = True
+    while have_data:
+        try:
+            userRecord: Record = pb.client.collection(
+                "tweet_users"
+            ).get_first_list_item("status = 'fetched'")
+            user = User(**userRecord.__dict__)
+            pb.client.collection("tweet_users").update(
+                userRecord.id, {"status": "not fetched"}
+            )
+            logger.info(
+                f"Reset fetched_tweets for user: {user.username} (ID: {user.user_id})"
+            )
+        except ClientResponseError as e:
+            if "The requested resource wasn't found." in str(e):
+                logger.info("No more users with fetched_tweets to reset.")
+                have_data = False
+            else:
+                logger.error(f"ClientResponseError: {e}")
+                have_data = False
+        except Exception as e:
+            logger.error(f"Error resetting fetched_tweets: {type(e).__name__} - {e}")
+            have_data = False
 
 
 @cli.command()
