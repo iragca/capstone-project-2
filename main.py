@@ -77,6 +77,7 @@ def ingest_tweety_tweets() -> None:
 def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
     pb = PBWarehouse()
     SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "oldbird")
+    TWEETS_PER_PAGE = 20
 
     filter_params = (
         "creation_date <= '2020-07-24' &&"
@@ -88,7 +89,6 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
     tweetsRecords: list[Record] = pb.client.collection("tweets_v2").get_full_list(
         query_params={"filter": filter_params}
     )
-    TWEETS_PER_PAGE = 20
 
     # Get all users that exist in the dataset
     # Then get their tweets
@@ -98,8 +98,8 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
         tweet = Tweet(**record.__dict__)
 
         user_id: str = tweet.user_id
-        retrieved_user: dict = pb.get_user_by_id(user_id)
-        user: User = User(**retrieved_user)
+        retrieved_user: Record = pb.get_user_by_id(user_id)
+        user: User = User(**retrieved_user.__dict__)
 
         username: str = user.username
         number_of_tweets: int = user.number_of_tweets
@@ -118,6 +118,10 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
 
         logger.info(
             f"Fetching tweets for user: {username} (ID: {user_id}) - {number_of_tweets} tweets)"
+        )
+
+        pb.client.collection("tweet_users").update(
+            retrieved_user.id, {"status": "fetching"}
         )
 
         tweets = get_user_tweets(
@@ -142,9 +146,9 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
             continue
 
         pb.client.collection("tweet_users").update(
-            retrieved_user["id"],
+            retrieved_user.id,
             {
-                "fetched_tweets": True,
+                "status": "fetched"
             },
         )
         logger.info(f"Updated user {username} with {len(tweets)} tweets.")
