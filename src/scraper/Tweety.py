@@ -39,8 +39,8 @@ class TweetyScraper:
     async def get_tweets_of_user(self, username: str, pages: int = 100, wait_time: int = 30) -> list[dict]:
         app: TwitterAsync = await self.login()
 
-        tweets: list[TweetyTweet] = await app.get_tweets(
-            username, wait_time=wait_time, pages=pages
+        tweets: list[TweetyTweet] = await app.search(
+            f"(from:{username})", wait_time=wait_time, pages=pages
         )
 
         if not tweets:

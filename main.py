@@ -143,7 +143,7 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def get_all_users_tweets_by_tweety(
-    max_requests: int | None = None, wait_time: int = 30
+    max_pages: int | None = None, wait_time: int = 30
 ) -> None:
     pb = PBWarehouse()
     scraper = TweetyScraper(
@@ -157,29 +157,32 @@ def get_all_users_tweets_by_tweety(
         try:
             userRecord: Record = pb.get_user_with_not_fetched_tweets()
             user: User = User(**userRecord.__dict__)
-            pages = math.ceil(user.number_of_tweets / TWEETS_PER_PAGE)
+            max_pages = math.ceil(user.number_of_tweets / TWEETS_PER_PAGE)
 
             pb.client.collection("tweet_users").update(
                 userRecord.id, {"status": "fetching"}
             )
             logger.info(
                 f"Fetching tweets for user: {user.username} "
-                f"(ID: {user.user_id}), tweets: {user.number_of_tweets}, pages: {pages}."
+                f"(ID: {user.user_id}), tweets: {user.number_of_tweets}, pages: {max_pages}."
             )
 
             # Fetch tweets for the user
             tweets: list[dict] = asyncio.run(
                 scraper.get_tweets_of_user(
                     username=user.username,
-                    pages=max_requests if max_requests else pages,
+                    pages=max_pages if max_pages else max_pages,
                     wait_time=wait_time,
                 )
             )
 
             if not tweets:
-                logger.warning(f"No tweets found for user {user.username}.")
+                logger.warning(
+                    f"No tweets found for user {user.username}. "
+                    f"Possibly because the tweets are sensitive."
+                )
                 pb.client.collection("tweet_users").update(
-                    userRecord.id, {"status": "fetched"}
+                    userRecord.id, {"status": "not fetched"}
                 )
                 continue
 
