@@ -76,6 +76,7 @@ def ingest_tweety_tweets() -> None:
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
     pb = PBWarehouse()
+    SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "oldbird")
 
     filter_params = (
         "creation_date <= '2020-07-24' &&"
@@ -103,7 +104,7 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
         username: str = user.username
         number_of_tweets: int = user.number_of_tweets
 
-        if user.fetched_tweets:
+        if (user.status == "fetched") or (user.status == "fetching"):
             logger.info(f"User '{username}' already has fetched tweets. Skipping.")
             continue
 
@@ -114,7 +115,7 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
         tweets = get_user_tweets(
             user_id,
             username,
-            Settings.OLD_BIRD_USERS_CONTINUATION_TOKEN,
+            Settings.OLD_BIRD_USERS_CONTINUATION_TOKEN.value,
             max_requests=max_requests
             if max_requests
             else number_of_tweets // TWEETS_PER_PAGE,
@@ -124,7 +125,7 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
         try:
             for tweet in tweets:
                 json_filename = (
-                    INTERIM_DATA_DIR / "oldbird" / f"{tweet['tweet_id']}.json"
+                    SAVE_DIR / f"{tweet['tweet_id']}.json"
                 )
                 with open(json_filename, "w", encoding="utf-8") as f:
                     json.dump(tweet, f, ensure_ascii=False, indent=4)
