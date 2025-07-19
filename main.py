@@ -144,11 +144,15 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def get_all_users_tweets_by_tweety(
-    max_pages: int | None = None, wait_time: int = 30
+    max_pages: int | None = None,
+    wait_time: int = 30,
+    previous_session: bool | None = None,
 ) -> None:
     pb = PBWarehouse()
     scraper = TweetyScraper(
-        previous_session=(PROJECT_ROOT / "session.tw_session").exists()
+        previous_session=previous_session
+        if previous_session is not None
+        else (PROJECT_ROOT / "session.tw_session").exists()
     )
     SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "tweety")
     TWEETS_PER_PAGE = 20
