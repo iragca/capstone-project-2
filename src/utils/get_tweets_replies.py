@@ -7,7 +7,7 @@ from tqdm import tqdm
 from src.config import logger
 
 
-def get_tweet_replies(tweet_ids: list[str], staging: Path) -> list[str]:
+def get_tweet_replies(tweet_ids: list[str], staging: Path, api_key: str) -> list[str]:
     """Returns a list of tweet with replies."""
     assert isinstance(tweet_ids, list), "tweet_ids must be a list of strings"
     assert all(isinstance(tweet_id, str) for tweet_id in tweet_ids), (
@@ -15,7 +15,7 @@ def get_tweet_replies(tweet_ids: list[str], staging: Path) -> list[str]:
     )
     url = "https://twitter154.p.rapidapi.com/tweet/replies/continuation"
     headers = {
-        "x-rapidapi-key": "3ba6bea96amsha13f50dd29c930fp1f1cf9jsnc15627770e18",
+        "x-rapidapi-key": api_key,
         "x-rapidapi-host": "twitter154.p.rapidapi.com",
     }
     with_replies = []

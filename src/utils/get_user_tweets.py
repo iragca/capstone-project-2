@@ -2,10 +2,10 @@ import requests
 from tqdm import tqdm
 
 
-def get_user_tweets(user_id: str, username: str, cont_token: str, max_requests: int = 100) -> list:
+def get_user_tweets(user_id: str, username: str, cont_token: str,  api_key: str, max_requests: int = 100) -> list:
     url = "https://twitter154.p.rapidapi.com/user/tweets/continuation"
     headers = {
-        "x-rapidapi-key": "3ba6bea96amsha13f50dd29c930fp1f1cf9jsnc15627770e18",
+        "x-rapidapi-key": api_key,
         "x-rapidapi-host": "twitter154.p.rapidapi.com",
     }
     tweets = []
