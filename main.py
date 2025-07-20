@@ -95,7 +95,7 @@ def get_user_tweets_v2(max_retries: int = 5) -> None:
                     "Possibly because the tweets are sensitive."
                 )
                 pb.client.collection("tweet_users").update(
-                    userRecord.id, {"status": "not fetched"}
+                    userRecord.id, {"status": "fetched"}
                 )
                 continue
 
