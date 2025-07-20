@@ -29,8 +29,21 @@ cli = Typer()
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
-def get_user_tweets_v2() -> None:
-    """Get tweets for users using the RapidApi Twitter API45."""
+def ingest_data_from_api45():
+    """Ingest data from the Twitter API45 into the PocketBase warehouse."""
+    ...
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
+def get_user_tweets_v2(max_retries: int = 5) -> None:
+    """Get tweets for users using the RapidApi Twitter API45.
+
+    Args:
+        max_retries (int): Maximum number of retries for fetching tweets.
+                           Useful when the API thinks there are no more tweets
+                           for a user, but there are actually more tweets available.
+    """
     scraper = RapidApiScraper(api_key=Settings.X_RAPIDAPI_KEY.value)
     pb = PBWarehouse()
     SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45")
@@ -48,7 +61,9 @@ def get_user_tweets_v2() -> None:
             )
 
             tweets: list[dict] = scraper.get_users_tweets_by_twitter_api45(
-                username=user.username, expected_num_tweets=user.number_of_tweets
+                username=user.username,
+                expected_num_tweets=user.number_of_tweets,
+                max_retries=max_retries,
             )
 
             if len(tweets) == 0:
@@ -201,7 +216,7 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
             max_requests=max_requests
             if max_requests
             else number_of_tweets // TWEETS_PER_PAGE,
-            api_key=Settings.X_RAPIDAPI_KEY.value
+            api_key=Settings.X_RAPIDAPI_KEY.value,
         )
         logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
 
