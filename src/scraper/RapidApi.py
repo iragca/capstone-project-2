@@ -74,6 +74,8 @@ class RapidApiScraper:
 
                 if not data["next_cursor"]:
                     have_data = False
+                    pbar.close()
+                    break
                 querystring["cursor"] = data.get("next_cursor", None)
         except Exception as e:
             print(f"An error occurred: {e}")
