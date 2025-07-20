@@ -31,8 +31,31 @@ cli = Typer()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def ingest_data_from_api45():
     """Ingest data from the Twitter API45 into the PocketBase warehouse."""
-    ...
+    SAVE_PATH = ensure_path(INTERIM_DATA_DIR / "twitter_api45")
+    pb = PBWarehouse()
 
+    for tweet_file in SAVE_PATH.iterdir():
+        if tweet_file.suffix != ".json":
+            logger.warning(f"Skipping non-JSON file: {tweet_file.name}")
+            continue
+
+        try:
+            with open(tweet_file, "r", encoding="utf-8") as f:
+                tweet_data: dict  = json.load(f)
+
+            assert isinstance(tweet_data, dict), (
+                f"Tweet data must be a dictionary, got {type(tweet_data)}"
+            )
+
+        except Exception as e:
+            logger.error(f"Error processing tweet file {tweet_file.name}: {e}")
+            continue
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
+def update_user_friends_count() -> None:
+    """Update the friends_count field for users in the PocketBase warehouse."""
+    ...
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
@@ -83,7 +106,6 @@ def get_user_tweets_v2(max_retries: int = 5) -> None:
                 tweet_file = SAVE_DIR / f"{tweet['tweet_id']}.json"
                 with open(tweet_file, "w", encoding="utf-8") as f:
                     json.dump(tweet, f)
-                logger.info(f"Saved tweet {tweet['tweet_id']} for user {user.username}")
 
             pb.client.collection("tweet_users").update(
                 userRecord.id,
@@ -91,7 +113,7 @@ def get_user_tweets_v2(max_retries: int = 5) -> None:
                     "status": "fetched",
                 },
             )
-            logger.info(f"Updated user {user.username} with {len(tweets)} tweets.")
+            logger.success(f"Fetched tweets from user {user.username} with {len(tweets)} tweets.")
         except ClientResponseError as e:
             if "The requested resource wasn't found." in str(e):
                 logger.info("No more users to fetch tweets for.")
