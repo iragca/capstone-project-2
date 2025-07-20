@@ -23,6 +23,8 @@ class RapidApiScraper:
         have_data = True
         status500_retry_seconds = 30
         TWEETS_PER_PAGE = 20
+        print(f"{status500_retry_seconds=}, {TWEETS_PER_PAGE=}")
+
         pbar = tqdm(
             desc=f"Fetching tweet pages for {username}",
             unit="pages",
@@ -31,8 +33,6 @@ class RapidApiScraper:
             if expected_num_tweets
             else None,
         )
-
-        print(f"{status500_retry_seconds=}, {TWEETS_PER_PAGE=}")
         try:
             while have_data:
                 response = requests.get(url, headers=headers, params=querystring)
