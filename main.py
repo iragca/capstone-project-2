@@ -99,8 +99,6 @@ def get_user_tweets_v2(max_retries: int = 5) -> None:
                 )
                 continue
 
-            logger.info(f"Fetched {len(tweets)} tweets for user {user.username}.")
-
             # Save the fetched tweets to the designated directory
             for tweet in tweets:
                 tweet_file = SAVE_DIR / f"{tweet['tweet_id']}.json"
