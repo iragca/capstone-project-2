@@ -21,3 +21,4 @@ class User(BaseModel):
     description: str
     status: Literal["fetched", "not fetched", "fetching", ""] = "not fetched"
     creation_date: Optional[str]
+    friends: Optional[int] = 0
