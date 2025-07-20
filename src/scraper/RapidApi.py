@@ -13,7 +13,7 @@ class RapidApiScraper:
     ) -> list[dict]:
         """https://rapidapi.com/alexanderxbx/api/twitter-api45"""
         url = "https://twitter-api45.p.rapidapi.com/search.php"
-        querystring = {"query": f"(from:{username})", "search_type": "Latest"}
+        querystring = {"query": f"(from:{username}) until:2020-07-24", "search_type": "Latest"}
         headers = {
             "x-rapidapi-key": self.api_key,
             "x-rapidapi-host": "twitter-api45.p.rapidapi.com",
