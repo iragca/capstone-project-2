@@ -9,7 +9,7 @@ class RapidApiScraper:
         self.api_key = api_key
 
     def get_users_tweets_by_twitter_api45(
-        self, username: str, expected_num_tweets: int = None
+        self, username: str, expected_num_tweets: int = None, max_retries: int = 5
     ) -> list[dict]:
         """https://rapidapi.com/alexanderxbx/api/twitter-api45"""
         url = "https://twitter-api45.p.rapidapi.com/search.php"
@@ -20,7 +20,6 @@ class RapidApiScraper:
         }
         tweets = []
         retry_count = 0
-        max_retries = 5
         have_data = True
         status500_retry_seconds = 30
         TWEETS_PER_REQUEST = 20
@@ -56,7 +55,7 @@ class RapidApiScraper:
                     time.sleep(30)
                     retry_count += 1
                     print(
-                        f"No data for user {username}. Retrying {retry_count}/{max_retries}..."
+                        f"No additional tweets found for user {username}. Retrying {retry_count}/{max_retries}..."
                     )
                     if retry_count > max_retries:
                         print(
