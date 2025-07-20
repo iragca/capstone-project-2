@@ -1,4 +1,4 @@
-from .RapidApi import RapidApi
+from .RapidApi import RapidApiScraper
 from .Tweety import TweetyScraper
 
-__all__ = ["RapidApi", "TweetyScraper"]
+__all__ = ["RapidApiScraper", "TweetyScraper"]

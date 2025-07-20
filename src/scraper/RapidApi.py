@@ -1,54 +1,78 @@
-import json
-from http.client import HTTPResponse, HTTPSConnection
-
-from polars import DataFrame
-from pydantic import BaseModel, Field, model_validator
-
-from src.config import logger
+import requests
+import time
+from tqdm import tqdm
+import math
 
 
-class InputData(BaseModel):
-    data: DataFrame
-    start: int = Field(ge=0)
-    end: int
+class RapidApiScraper:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
 
-    model_config = {"arbitrary_types_allowed": True}
-
-    @model_validator(mode="after")
-    def check_range(self) -> "InputData":
-        if self.end - self.start > 250:
-            raise ValueError("The range must not exceed 250 tweet IDs.")
-        return self
-
-
-class RapidApi(BaseModel):
-    api_key: str = Field(min_length=50, max_length=50)
-    api_host: str = Field(default="twitter241.p.rapidapi.com")
-
-    def get_headers(self):
-        return {
+    def get_users_tweets_by_twitter_api45(
+        self, username: str, expected_num_tweets: int = None
+    ) -> list[dict]:
+        """https://rapidapi.com/alexanderxbx/api/twitter-api45"""
+        url = "https://twitter-api45.p.rapidapi.com/search.php"
+        querystring = {"query": f"(from:{username})", "search_type": "Latest"}
+        headers = {
             "x-rapidapi-key": self.api_key,
-            "x-rapidapi-host": self.api_host,
+            "x-rapidapi-host": "twitter-api45.p.rapidapi.com",
         }
-
-    def get_data(self, data: DataFrame, start: int, end: int) -> dict:
-
-        input = InputData(data=data, start=start, end=end)
-
+        tweets = []
+        retry_count = 0
+        max_retries = 5
+        have_data = True
+        status500_retry_seconds = 30
+        TWEETS_PER_REQUEST = 20
+        pbar = tqdm(
+            desc=f"Fetching tweets for {username}",
+            unit="tweets",
+            leave=False,
+            total=math.ceil(expected_num_tweets / TWEETS_PER_REQUEST)
+            if expected_num_tweets
+            else None,
+        )
         try:
-            conn = HTTPSConnection("twitter241.p.rapidapi.com")
+            while have_data:
+                response = requests.get(url, headers=headers, params=querystring)
 
-            tweet_ids: str = r"%2C".join(
-                list(input.data["tweetIds"][input.start : input.end])
-            )
-            conn.request(
-                "GET", "/tweet-by-ids?tweetIds=" + tweet_ids, headers=self.get_headers()
-            )
-            res: HTTPResponse = conn.getresponse()
-            json_data: bytes = res.read()
+                if response.status_code == 500:
+                    print(f"Looks like the request failed for user {username}.")
+                    print(f"Status {response.status_code}: {response.text}")
+                    print(f"Retrying in {status500_retry_seconds} seconds...")
+                    time.sleep(status500_retry_seconds)
+                    continue
 
-            return json.loads(json_data.decode("utf-8"))
+                if response.status_code != 200:
+                    print(
+                        f"Error fetching data for user {username}: {response.status_code}"
+                    )
+                    print(f"Response: {response.text}")
+                    break
 
-        except Exception:
-            logger.exception("Error while getting data")
-            return {}
+                data = response.json()
+
+                if len(data["timeline"]) == 0:
+                    time.sleep(30)
+                    retry_count += 1
+                    print(
+                        f"No data for user {username}. Retrying {retry_count}/{max_retries}..."
+                    )
+                    if retry_count > max_retries:
+                        print(
+                            f"No more data for user {username}. Stopped after {max_retries} retries."
+                        )
+                        break
+                    continue
+
+                retry_count = 0
+                tweets.extend(data["timeline"])
+                pbar.update(1)
+
+                if not data["next_cursor"]:
+                    have_data = False
+                querystring["cursor"] = data.get("next_cursor", None)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+        return tweets

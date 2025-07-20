@@ -21,10 +21,81 @@ from src.config import (
 )
 from src.db import PBWarehouse
 from src.models import Tweet, User
-from src.scraper import TweetyScraper
+from src.scraper import TweetyScraper, RapidApiScraper
 from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
 
 cli = Typer()
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
+def get_user_tweets_v2() -> None:
+    """Get tweets for users using the RapidApi Twitter API45."""
+    scraper = RapidApiScraper(api_key=Settings.X_RAPIDAPI_KEY.value)
+    pb = PBWarehouse()
+    SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45")
+    have_data = True
+    while have_data:
+        try:
+            userRecord = pb.get_user_with_not_fetched_tweets()
+            user = User(**userRecord.__dict__)
+            logger.info(
+                f"Fetching tweets for user: {user.username} (ID: {user.user_id}) - {user.number_of_tweets} tweets"
+            )
+
+            pb.client.collection("tweet_users").update(
+                userRecord.id, {"status": "fetching"}
+            )
+
+            tweets: list[dict] = scraper.get_users_tweets_by_twitter_api45(
+                username=user.username, expected_num_tweets=user.number_of_tweets
+            )
+
+            if len(tweets) == 0:
+                logger.warning(
+                    f"No tweets found for user {user.username}. "
+                    "Possibly because the tweets are sensitive."
+                )
+                pb.client.collection("tweet_users").update(
+                    userRecord.id, {"status": "not fetched"}
+                )
+                continue
+
+            logger.info(f"Fetched {len(tweets)} tweets for user {user.username}.")
+
+            # Save the fetched tweets to the designated directory
+            for tweet in tweets:
+                tweet_file = SAVE_DIR / f"{tweet['tweet_id']}.json"
+                with open(tweet_file, "w", encoding="utf-8") as f:
+                    json.dump(tweet, f)
+                logger.info(f"Saved tweet {tweet['tweet_id']} for user {user.username}")
+
+            pb.client.collection("tweet_users").update(
+                userRecord.id,
+                {
+                    "status": "fetched",
+                },
+            )
+            logger.info(f"Updated user {user.username} with {len(tweets)} tweets.")
+        except ClientResponseError as e:
+            if "The requested resource wasn't found." in str(e):
+                logger.info("No more users to fetch tweets for.")
+                pb.client.collection("tweet_users").update(
+                    userRecord.id, {"status": "not fetched"}
+                )
+                have_data = False
+            else:
+                logger.error(f"ClientResponseError: {e}")
+                pb.client.collection("tweet_users").update(
+                    userRecord.id, {"status": "not fetched"}
+                )
+                have_data = False
+        except Exception as e:
+            logger.error(f"Error fetching tweets: {type(e).__name__} - {e}")
+            have_data = False
+            pb.client.collection("tweet_users").update(
+                userRecord.id, {"status": "not fetched"}
+            )
 
 
 @cli.command()
@@ -108,7 +179,6 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
             logger.info(f"User '{username}' already has fetched tweets. Skipping.")
             continue
 
-
         if user.number_of_tweets > 5000:
             logger.info(
                 f"User {username} has more than 5000 tweets ({number_of_tweets}). "
@@ -131,14 +201,13 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
             max_requests=max_requests
             if max_requests
             else number_of_tweets // TWEETS_PER_PAGE,
+            api_key=Settings.X_RAPIDAPI_KEY.value
         )
         logger.info(f"Total tweets fetched for {username}: {len(tweets)}")
 
         try:
             for tweet in tweets:
-                json_filename = (
-                    SAVE_DIR / f"{tweet['tweet_id']}.json"
-                )
+                json_filename = SAVE_DIR / f"{tweet['tweet_id']}.json"
                 with open(json_filename, "w", encoding="utf-8") as f:
                     json.dump(tweet, f, ensure_ascii=False, indent=4)
         except Exception as e:
@@ -147,9 +216,7 @@ def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
 
         pb.client.collection("tweet_users").update(
             retrieved_user.id,
-            {
-                "status": "fetched"
-            },
+            {"status": "fetched"},
         )
         logger.info(f"Updated user {username} with {len(tweets)} tweets.")
 
@@ -294,6 +361,41 @@ def update_has_replies_using_reply_id() -> None:
         except Exception as e:
             logger.error(f"Error updating tweet {record.id}: {type(e).__name__} - {e}")
             continue
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
+def clean_fetching_buffer() -> None:
+    """Clean the fetching buffer for users."""
+    pb = PBWarehouse()
+
+    print("Make sure no one is actually fetching tweets before running this command.")
+    for second in range(10):
+        time.sleep(1)
+        print(f"Cleaning fetching buffer in {10 - second} seconds. Ctrl+C to cancel.")
+    have_data = True
+    while have_data:
+        try:
+            userRecord: Record = pb.client.collection(
+                "tweet_users"
+            ).get_first_list_item("status = 'fetching'")
+            user = User(**userRecord.__dict__)
+            pb.client.collection("tweet_users").update(
+                userRecord.id, {"status": "not fetched"}
+            )
+            logger.info(
+                f"Cleaned fetching buffer for user: {user.username} (ID: {user.user_id})"
+            )
+        except ClientResponseError as e:
+            if "The requested resource wasn't found." in str(e):
+                logger.info("No more users with fetching status to clean.")
+                have_data = False
+            else:
+                logger.error(f"ClientResponseError: {e}")
+                have_data = False
+        except Exception as e:
+            logger.error(f"Error cleaning fetching buffer: {type(e).__name__} - {e}")
+            have_data = False
 
 
 @cli.command()
@@ -593,7 +695,7 @@ def get_from_oldbird(
                 def get_tweets(querystring, num_requests=5):
                     url = "https://twitter154.p.rapidapi.com/search/search/continuation"
                     headers = {
-                        "x-rapidapi-key": "3ba6bea96amsha13f50dd29c930fp1f1cf9jsnc15627770e18",
+                        "x-rapidapi-key": Settings.X_RAPIDAPI_KEY.value,
                         "x-rapidapi-host": "twitter154.p.rapidapi.com",
                     }
 
