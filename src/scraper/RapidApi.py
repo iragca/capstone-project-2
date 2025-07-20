@@ -57,14 +57,16 @@ class RapidApiScraper:
                     print(
                         f"No additional tweets found for user {username}. Retrying {retry_count}/{max_retries}..."
                     )
+                    print(f"Response: {data}")
                     if retry_count > max_retries:
                         print(
                             f"No more data for user {username}. Stopped after {max_retries} retries."
                         )
                         break
                     continue
+                else:
+                    retry_count = 0
 
-                retry_count = 0
                 tweets.extend(data["timeline"])
                 pbar.update(1)
 
