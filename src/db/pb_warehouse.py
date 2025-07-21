@@ -119,14 +119,14 @@ class PBWarehouse:
         user = self.client.collection("tweet_users").get_first_list_item(
             f"user_id = '{user_id}'"
         )
-        return user if user else None
+        return user
 
     def get_tweet_with_no_classification(self) -> Record:
         """Get a tweet that has not been classified yet."""
         tweetRecord = self.client.collection("tweets_v2").get_first_list_item(
             "is_hateful = NULL",
         )
-        return tweetRecord if tweetRecord else None
+        return tweetRecord
 
     def get_user_with_not_fetched_tweets(self) -> Record:
         """Get a user that has 'not fetched' tweets yet."""
@@ -135,4 +135,4 @@ class PBWarehouse:
         )
         userRecord = self.get_user_by_id(userRecord.user_id)
 
-        return userRecord if userRecord else None
+        return userRecord
