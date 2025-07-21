@@ -19,7 +19,12 @@ class PBWarehouse:
             assert isinstance(tweet, Tweet), "Input must be a Tweet instance"
             assert tweet.user_id, "Tweet must have a user_id"
 
-            return self.client.collection("tweets_v2").create(tweet.model_dump())
+            updatedRecord = self.client.collection("tweets_v2").create(tweet.model_dump())
+
+            logger.success(
+                f"Successfully created tweet record with ID: {updatedRecord.id}"
+            )
+            return updatedRecord
         except ClientResponseError as e:
             if "validation_not_unique" in str(e):
                 logger.info(f"Tweet with ID {tweet.tweet_id} already exists. Skipping.")
