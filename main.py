@@ -23,12 +23,13 @@ from src.db import PBWarehouse
 from src.models import Tweet, User
 from src.scraper import TweetyScraper, RapidApiScraper
 from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
+from src.utils.parsers import api45_tweet
 
 cli = Typer()
 
 
 @cli.command()
-@function_logger(LOGGER_DIR=LOGGER_DIR)
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def ingest_data_from_api45():
     """Ingest data from the Twitter API45 into the PocketBase warehouse."""
     SAVE_PATH = ensure_path(INTERIM_DATA_DIR / "twitter_api45")
@@ -41,21 +42,44 @@ def ingest_data_from_api45():
 
         try:
             with open(tweet_file, "r", encoding="utf-8") as f:
-                tweet_data: dict  = json.load(f)
+                tweet_data: dict = json.load(f)
+                assert isinstance(tweet_data, dict), (
+                    f"Tweet data must be a dictionary, got {type(tweet_data)}"
+                )
 
-            assert isinstance(tweet_data, dict), (
-                f"Tweet data must be a dictionary, got {type(tweet_data)}"
-            )
+                if tweet_data["tweet_id"] is None:
+                    logger.warning(
+                        f"Tweet data does not contain 'tweet_id'. Skipping {tweet_file.name}."
+                    )
+                    continue
+
+                tweet: Tweet = api45_tweet(tweet_data)
+                pb.ingest_single_tweet(tweet)
+                # If the tweet has a retweet or quoted status, ingest those as well
+
+                try:
+                    if "quoted" in tweet_data.keys():
+                        if tweet_data["quoted"]["tweet_id"] is not None:
+                            quote = api45_tweet(tweet_data["quoted"])
+                            pb.ingest_single_tweet(quote)
+                except Exception as e:
+                    logger.error(
+                        f"Error processing quoted tweet in file {tweet_file.name}: {type(e).__name__} - {e}"
+                    )
 
         except Exception as e:
-            logger.error(f"Error processing tweet file {tweet_file.name}: {e}")
+            logger.error(
+                f"Error processing tweet file {tweet_file.name}: {type(e).__name__} - {e}"
+            )
             continue
+
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def update_user_friends_count() -> None:
     """Update the friends_count field for users in the PocketBase warehouse."""
     ...
+
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
@@ -111,7 +135,9 @@ def get_user_tweets_v2(max_retries: int = 5) -> None:
                     "status": "fetched",
                 },
             )
-            logger.success(f"Fetched tweets from user {user.username} with {len(tweets)} tweets.")
+            logger.success(
+                f"Fetched tweets from user {user.username} with {len(tweets)} tweets."
+            )
         except ClientResponseError as e:
             if "The requested resource wasn't found." in str(e):
                 logger.info("No more users to fetch tweets for.")

@@ -13,6 +13,24 @@ class PBWarehouse:
             email=s.POCKETBASE_EMAIL.value, password=s.POCKETBASE_PASSWORD.value
         )
 
+    def ingest_single_tweet(self, tweet: Tweet) -> Record:
+        """Ingest a single Tweet instance into the PocketBase warehouse."""
+        try:
+            assert isinstance(tweet, Tweet), "Input must be a Tweet instance"
+            assert tweet.user_id, "Tweet must have a user_id"
+
+            return self.client.collection("tweets_v2").create(tweet.model_dump())
+        except ClientResponseError as e:
+            if "validation_not_unique" in str(e):
+                logger.info(f"Tweet with ID {tweet.tweet_id} already exists. Skipping.")
+                return None
+            else:
+                logger.error(f"Error ingesting tweet: {e}")
+                return None
+        except Exception as e:
+            logger.error(f"Error ingesting tweet: {e}, {tweet}")
+            return None
+
     def ingest_tweet(self, tweet: dict) -> dict[str, Record]:
         assert isinstance(tweet, dict), "Input must be a dictionary"
         processed_tweet = self._process_tweet(tweet)
