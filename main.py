@@ -23,7 +23,7 @@ from src.db import PBWarehouse
 from src.models import Tweet, User
 from src.scraper import TweetyScraper, RapidApiScraper
 from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
-from src.utils.parsers import api45_tweet
+from src.utils.parsers import api45_tweet, api45_user
 
 cli = Typer()
 
@@ -78,6 +78,58 @@ def ingest_data_from_api45():
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def update_user_friends_count() -> None:
     """Update the friends_count field for users in the PocketBase warehouse."""
+    SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45")
+    pb = PBWarehouse()
+
+    for tweet_file in SAVE_DIR.iterdir():
+        if tweet_file.suffix != ".json":
+            logger.warning(f"Skipping non-JSON file: {tweet_file.name}")
+            continue
+
+        try:
+            with open(tweet_file, "r", encoding="utf-8") as f:
+                tweet_data: dict = json.load(f)
+                assert isinstance(tweet_data, dict), (
+                    f"Tweet data must be a dictionary, got {type(tweet_data)}"
+                )
+
+                user_data = tweet_data.get("user_info", {})
+                user: User = api45_user(user_data)
+
+                userRecord: Record = pb.get_user_by_id(user.user_id)
+                if not userRecord:
+                    logger.warning(
+                        f"User with ID {user.user_id} not found in PocketBase. Skipping."
+                    )
+                    continue
+
+                if userRecord.friends == user.friends:
+                    logger.info(
+                        f"User {user.username} (ID: {user.user_id}) already has friends_count set to {user.friends}. Skipping."
+                    )
+                    continue
+
+                # Update the user's friends_count
+                pb.client.collection("tweet_users").update(
+                    userRecord.id,
+                    {
+                        "friends": user.friends,
+                    },
+                )
+                logger.success(
+                    f"Updated friends_count for user {user.username} (ID: {user.user_id}) to {user.friends}."
+                )
+        except Exception as e:
+            logger.error(
+                f"Error processing tweet file {tweet_file.name}: {type(e).__name__} - {e}"
+            )
+            continue
+
+
+@cli.command()
+def get_user_tweets_with_less_than_5000_tweets() -> None:
+    """Get tweets for users with less than 5000 tweets using the RapidApi Twitter API45."""
+    scraper = RapidApiScraper(api_key=Settings)
     ...
 
 
