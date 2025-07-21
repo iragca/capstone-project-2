@@ -146,7 +146,7 @@ def get_user_tweets_v2(
     have_data = True
     while have_data:
         try:
-            userRecord: Record = pb.get_user_with_less_than_k_tweets(less_than_k_tweets)
+            userRecord: Record = pb.get_user_with_not_fetched_tweets(less_than_k_tweets)
 
             user = User(**userRecord.__dict__)
             logger.info(
