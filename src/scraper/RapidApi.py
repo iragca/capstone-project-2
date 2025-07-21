@@ -86,6 +86,6 @@ class RapidApiScraper:
                     break
                 querystring["cursor"] = data.get("next_cursor", None)
         except Exception as e:
-            print(f"An error occurred: {e}: {response}")
+            print(f"An error occurred: {e}: {response.status_code} {response.text}")
 
         return tweets
