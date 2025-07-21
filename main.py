@@ -129,7 +129,9 @@ def update_user_friends_count() -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def get_user_tweets_v2(
-    max_retries: int = 5, less_than_k_tweets: int | None = None
+    max_retries: int = 5,
+    less_than_k_tweets: int | None = None,
+    max_pages: int | None = None,
 ) -> None:
     """Get tweets for users using the RapidApi Twitter API45.
 
@@ -159,6 +161,7 @@ def get_user_tweets_v2(
                 username=user.username,
                 expected_num_tweets=user.number_of_tweets,
                 max_retries=max_retries,
+                max_pages=max_pages,
             )
 
             if len(tweets) == 0:

@@ -9,7 +9,11 @@ class RapidApiScraper:
         self.api_key = api_key
 
     def get_users_tweets_by_twitter_api45(
-        self, username: str, expected_num_tweets: int = None, max_retries: int = 5
+        self,
+        username: str,
+        expected_num_tweets: int = None,
+        max_retries: int = 5,
+        max_pages: int | None = None,
     ) -> list[dict]:
         """https://rapidapi.com/alexanderxbx/api/twitter-api45"""
         url = "https://twitter-api45.p.rapidapi.com/search.php"
@@ -23,6 +27,7 @@ class RapidApiScraper:
         }
         tweets = []
         retry_count = 0
+        current_pages = 0
         have_data = True
         status500_retry_seconds = 30
         TWEETS_PER_PAGE = 20
@@ -79,6 +84,11 @@ class RapidApiScraper:
 
                 tweets.extend(data["timeline"])
                 pbar.update(1)
+                current_pages += 1
+
+                if max_pages and current_pages >= max_pages:
+                    print(f"Reached max pages ({max_pages}) for user {username}.")
+                    break
 
                 if not data["next_cursor"]:
                     have_data = False
