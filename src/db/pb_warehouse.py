@@ -65,6 +65,10 @@ class PBWarehouse:
                 logger.info(
                     f"User with ID {processed_user['user_id']} already exists. Skipping."
                 )
+            else:
+                logger.error(f"Error ingesting user: {e}")
+        except Exception as e:
+            logger.error(f"Error ingesting user: {e}, {processed_user}")
         return {
             "record_tweet": record_tweet,
             "record_user": record_user,
