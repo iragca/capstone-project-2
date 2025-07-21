@@ -127,15 +127,10 @@ def update_user_friends_count() -> None:
 
 
 @cli.command()
-def get_user_tweets_with_less_than_5000_tweets() -> None:
-    """Get tweets for users with less than 5000 tweets using the RapidApi Twitter API45."""
-    scraper = RapidApiScraper(api_key=Settings)
-    ...
-
-
-@cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
-def get_user_tweets_v2(max_retries: int = 5) -> None:
+def get_user_tweets_v2(
+    max_retries: int = 5, less_than_k_tweets: int | None = None
+) -> None:
     """Get tweets for users using the RapidApi Twitter API45.
 
     Args:
@@ -149,7 +144,8 @@ def get_user_tweets_v2(max_retries: int = 5) -> None:
     have_data = True
     while have_data:
         try:
-            userRecord = pb.get_user_with_not_fetched_tweets()
+            userRecord: Record = pb.get_user_with_less_than_k_tweets(less_than_k_tweets)
+
             user = User(**userRecord.__dict__)
             logger.info(
                 f"Fetching tweets for user: {user.username} (ID: {user.user_id}) - {user.number_of_tweets} tweets"

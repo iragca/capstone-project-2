@@ -19,7 +19,9 @@ class PBWarehouse:
             assert isinstance(tweet, Tweet), "Input must be a Tweet instance"
             assert tweet.user_id, "Tweet must have a user_id"
 
-            updatedRecord = self.client.collection("tweets_v2").create(tweet.model_dump())
+            updatedRecord = self.client.collection("tweets_v2").create(
+                tweet.model_dump()
+            )
 
             logger.success(
                 f"Successfully created tweet record with ID: {updatedRecord.id}"
@@ -137,10 +139,17 @@ class PBWarehouse:
         )
         return tweetRecord
 
-    def get_user_with_not_fetched_tweets(self) -> Record:
+    def get_user_with_not_fetched_tweets(
+        self, less_than_k_tweets: int | None = None
+    ) -> Record:
         """Get a user that has 'not fetched' tweets yet."""
+
+        filter_condition = "status = 'not fetched' || status = NULL"
+        if less_than_k_tweets is not None:
+            filter_condition += f" && number_of_tweets < {less_than_k_tweets}"
+
         userRecord = self.client.collection("users_tweets_status").get_first_list_item(
-            "status = 'not fetched' || status = NULL",
+            filter_condition,
         )
         userRecord = self.get_user_by_id(userRecord.user_id)
 
