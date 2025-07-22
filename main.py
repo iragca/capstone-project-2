@@ -913,21 +913,6 @@ def classify_data() -> None:
 
 
 @cli.command()
-def tweety() -> None:
-    """Run the Tweety script."""
-    logger.add(PROJECT_ROOT / "reports" / "logs" / "tweet.logs")
-    scraper = TweetyScraper(previous_session=True)
-    asyncio.run(scraper.get_data())
-
-
-@cli.command()
-def tweety_login() -> None:
-    """Login to Twitter using Tweety."""
-    scraper = TweetyScraper(previous_session=False)
-    asyncio.run(scraper.login())
-
-
-@cli.command()
 def tweety_trends() -> None:
     """Run the Tweety script."""
     scraper = TweetyScraper(previous_session=True)
