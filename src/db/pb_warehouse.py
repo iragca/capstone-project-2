@@ -16,7 +16,7 @@ class PBWarehouse:
     def get_dataset(self) -> list[Record]:
         """Fetch the dataset from the PocketBase warehouse."""
         try:
-            dataset = self.client.collection("dataset").get_full_list()
+            dataset = self.client.collection("dataset").get_full_list(batch=10000)
             return dataset
         except ClientResponseError as e:
             logger.error(f"Error fetching dataset: {e}")
