@@ -1,3 +1,4 @@
 from .datasetloader import DatasetLoader
+from .preprocessor import Preprocessor
 
-__all__ = ["DatasetLoader"]
+__all__ = ["DatasetLoader", "Preprocessor"]
