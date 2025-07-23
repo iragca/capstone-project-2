@@ -1,4 +1,3 @@
-import sys
 from typing import Type, Union
 
 import networkx as nx
@@ -8,7 +7,7 @@ from pocketbase.models import Record
 
 from ..config import DATA_DIR
 from ..db import PBWarehouse
-from ..utils import ensure_path
+from ..utils import ensure_path, inline_print
 
 
 class DatasetLoader:
@@ -50,15 +49,15 @@ class DatasetLoader:
         print("This may take 30 minutes or more...")
         records: list[Record] = self.pb.get_dataset()
         data: list[dict] = self._parse_records(records)
-        self._inline_print("Dataset fetched from the warehouse.")
+        inline_print("Dataset fetched from the warehouse.")
         return pl.DataFrame(data)
 
     def get_cached_dataset(self) -> pl.DataFrame:
         """Load the cached dataset if available."""
-        self._inline_print("Loading dataset from cache...")
+        inline_print("Loading dataset from cache...")
         if self.dataset_path.exists():
             df = pl.read_csv(self.dataset_path)
-            self._inline_print("Cached dataset loaded successfully.")
+            inline_print("Cached dataset loaded successfully.")
             return df
         else:
             raise FileNotFoundError(f"Cached dataset not found at {self.dataset_path}")
@@ -68,7 +67,7 @@ class DatasetLoader:
         print("Updating cache...")
         data: pl.DataFrame = self.get_dataset()
         self._cache_dataset(data)
-        self._inline_print("Cache updated successfully.")
+        inline_print("Cache updated successfully.")
         return data
 
     def _cache_dataset(self, data: pl.DataFrame) -> None:
@@ -190,13 +189,6 @@ class DatasetLoader:
     def _check_graph_type(dtype: type) -> None:
         if dtype not in (nx.Graph, nx.DiGraph):
             raise ValueError("Unsupported graph type. Use nx.Graph or nx.DiGraph.")
-
-    @staticmethod
-    def _inline_print(message: str) -> None:
-        """Print a message inline."""
-        sys.stdout.write(f"\r{message}")
-        sys.stdout.flush()
-        return None
 
     @staticmethod
     def _has_null(data: pl.DataFrame) -> bool:

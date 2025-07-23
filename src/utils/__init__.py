@@ -4,6 +4,7 @@ from .get_tweets_replies import get_tweet_replies
 from .get_user_tweets import get_user_tweets
 from .ensure_path import ensure_path
 from .function_logger import function_logger
+from .inline_print import inline_print
 
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "get_user_tweets",
     "ensure_path",
     "function_logger",
+    "inline_print",
 ]
