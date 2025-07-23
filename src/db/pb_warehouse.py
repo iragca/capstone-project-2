@@ -13,6 +13,15 @@ class PBWarehouse:
             email=s.POCKETBASE_EMAIL.value, password=s.POCKETBASE_PASSWORD.value
         )
 
+    def get_dataset(self) -> list[Record]:
+        """Fetch the dataset from the PocketBase warehouse."""
+        try:
+            dataset = self.client.collection("dataset").get_full_list()
+            return dataset
+        except ClientResponseError as e:
+            logger.error(f"Error fetching dataset: {e}")
+            return []
+
     def ingest_single_tweet(self, tweet: Tweet) -> Record:
         """Ingest a single Tweet instance into the PocketBase warehouse."""
         try:
