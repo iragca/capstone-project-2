@@ -7,7 +7,7 @@ from pocketbase.models import Record
 
 from ..config import DATA_DIR
 from ..db import PBWarehouse
-from ..utils import ensure_path, inline_print
+from ..utils import ensure_path, function_printer, inline_print
 
 
 class DatasetLoader:
@@ -19,6 +19,7 @@ class DatasetLoader:
         if not self.cache_dir.exists():
             ensure_path(self.cache_dir)
 
+    @function_printer("Loading dataset")
     def load_dataset(
         self,
         cache: bool = True,
@@ -44,36 +45,33 @@ class DatasetLoader:
         else:
             return self._create_graph(data=df, dtype=dtype)
 
+    @function_printer("Fetching data (may take 30 minutes or more)")
     def get_dataset(self) -> pl.DataFrame:
         """Fetch the dataset from the PocketBase warehouse."""
-        print("This may take 30 minutes or more...")
         records: list[Record] = self.pb.get_dataset()
         data: list[dict] = self._parse_records(records)
-        inline_print("Dataset fetched from the warehouse.")
         return pl.DataFrame(data)
 
+    @function_printer("Loading cached dataset")
     def get_cached_dataset(self) -> pl.DataFrame:
         """Load the cached dataset if available."""
-        inline_print("Loading dataset from cache...")
         if self.dataset_path.exists():
             df = pl.read_csv(self.dataset_path)
-            inline_print("Cached dataset loaded successfully.")
             return df
         else:
             raise FileNotFoundError(f"Cached dataset not found at {self.dataset_path}")
 
+    @function_printer("Updating cache")
     def update_cache(self) -> pl.DataFrame:
         """Update the cached dataset."""
-        print("Updating cache...")
         data: pl.DataFrame = self.get_dataset()
         self._cache_dataset(data)
-        inline_print("Cache updated successfully.")
         return data
 
     def _cache_dataset(self, data: pl.DataFrame) -> None:
         """Save the dataset to the cache."""
         data.write_csv(self.dataset_path)
-        print(f"Dataset cached at {self.dataset_path}")
+        inline_print(f"Dataset cached at {self.dataset_path}")
         return None
 
     def _parse_records(self, records: list[Record]) -> list[dict]:
