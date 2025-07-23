@@ -33,7 +33,7 @@ class DatasetLoader:
             )
 
         if not self.dataset_path.exists():
-            print("Dataset cache not found. Fetching from PocketBase...")
+            inline_print("Dataset cache not found.\n")
             df = self.get_dataset()
             if cache:
                 self._cache_dataset(df)
@@ -45,7 +45,7 @@ class DatasetLoader:
         else:
             return self._create_graph(data=df, dtype=dtype)
 
-    @function_printer("Fetching data (may take 30 minutes or more)")
+    @function_printer("Fetching data (may take a few minutes or more)")
     def get_dataset(self) -> pl.DataFrame:
         """Fetch the dataset from the PocketBase warehouse."""
         records: list[Record] = self.pb.get_dataset()
@@ -71,7 +71,7 @@ class DatasetLoader:
     def _cache_dataset(self, data: pl.DataFrame) -> None:
         """Save the dataset to the cache."""
         data.write_csv(self.dataset_path)
-        inline_print(f"Dataset cached at {self.dataset_path}")
+        print(f"Dataset cached at {self.dataset_path}")
         return None
 
     def _parse_records(self, records: list[Record]) -> list[dict]:

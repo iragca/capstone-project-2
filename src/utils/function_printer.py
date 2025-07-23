@@ -20,7 +20,7 @@ def function_printer(message: str):
             try:
                 inline_print(f"{message}...")
                 result = func(*args, **kwargs)
-                inline_print(f"✅ {message} - Done\n.")
+                inline_print(f"✅ {message} - Done.\n")
                 return result
             except Exception as e:
                 inline_print(f"❌ {message} failed: [{type(e).__name__}] {e}\n")
