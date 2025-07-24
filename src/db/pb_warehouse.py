@@ -141,9 +141,9 @@ class PBWarehouse:
         )
         return user
 
-    def get_tweet_with_no_classification(self) -> Record:
+    def get_tweet_with_no_classification(self, collection: str = "tweets_v2") -> Record:
         """Get a tweet that has not been classified yet."""
-        tweetRecord = self.client.collection("tweets_v2").get_first_list_item(
+        tweetRecord = self.client.collection(collection).get_first_list_item(
             "is_hateful = NULL",
         )
         return tweetRecord
