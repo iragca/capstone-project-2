@@ -8,6 +8,37 @@ class RapidApiScraper:
     def __init__(self, api_key: str):
         self.api_key = api_key
 
+    def get_user_info_by_twitter_api45(
+        self,
+        username: str,
+        user_id: str | None = None,
+        max_retries: int = 5,
+    ) -> dict:
+        url = "https://twitter-api45.p.rapidapi.com/screenname.php"
+        querystring = {"screenname": username, "rest_id": user_id}
+
+        headers = {
+            "x-rapidapi-key": self.api_key,
+            "x-rapidapi-host": "twitter-api45.p.rapidapi.com",
+        }
+
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                response = requests.get(url, headers=headers, params=querystring)
+                if response.status_code == 200:
+                    return response.json()
+                print(f"Error fetching user info for {username}: {response.status_code}")
+                print(f"Response: {response.text}")
+                retry_count += 1
+                print(f"Retrying {retry_count}/{max_retries}...")
+                time.sleep(2**retry_count)
+            except Exception as e:
+                print(f"Error fetching user info for {username}: {e}")
+        
+        print(f"Failed to fetch user info for {username} after {max_retries} retries.")
+        return {}
+
     def get_users_tweets_by_twitter_api45(
         self,
         username: str,

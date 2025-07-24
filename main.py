@@ -3,8 +3,8 @@ import calendar
 import json
 import math
 import subprocess
-
 import time
+
 import requests
 import torch
 from pocketbase.errors import ClientResponseError
@@ -21,11 +21,88 @@ from src.config import (
 )
 from src.db import PBWarehouse
 from src.models import Tweet, User
-from src.scraper import TweetyScraper, RapidApiScraper
+from src.scraper import RapidApiScraper, TweetyScraper
 from src.utils import ensure_path, function_logger, get_tweet_replies, get_user_tweets
 from src.utils.parsers import api45_tweet, api45_user
 
 cli = Typer()
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
+def get_info_of_users():
+    """Get the information of users in the PocketBase warehouse."""
+    pb = PBWarehouse()
+    scraper = RapidApiScraper(api_key=Settings.X_RAPIDAPI_KEY.value)
+    SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45_user")
+    userRecords = pb.client.collection("users_tweets_status").get_full_list(
+        query_params={"filter": "friends = 0"}
+    )
+
+    for user in tqdm(userRecords, desc="Fetching user info", unit="user", ncols=100):
+        retrieved_user = scraper.get_user_info_by_twitter_api45(
+            user.username, user.user_id
+        )
+
+        if not retrieved_user:
+            logger.warning(f"User {user.username} (ID: {user.user_id}) not found.")
+            continue
+
+        with open(SAVE_DIR / f"{user.user_id}.json", "w", encoding="utf-8") as f:
+            json.dump(retrieved_user, f, ensure_ascii=False, indent=4)
+
+        logger.success(f"Fetched info for user {user.username} (ID: {user.user_id}).")
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
+def update_user_friends():
+    """Update the friends count for users in the PocketBase warehouse."""
+    pb = PBWarehouse()
+    SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45_user")
+
+    for user_file in SAVE_DIR.iterdir():
+        if user_file.suffix != ".json":
+            logger.warning(f"Skipping non-JSON file: {user_file.name}")
+            continue
+
+        try:
+            with open(user_file, "r", encoding="utf-8") as f:
+                user_data: dict = json.load(f)
+                assert isinstance(user_data, dict), (
+                    f"User data must be a dictionary, got {type(user_data)}"
+                )
+
+                user_id = user_data.get("rest_id")
+                if not user_id:
+                    logger.warning(f"User ID not found in {user_file.name}. Skipping.")
+                    continue
+
+                try:
+                    userRecord: Record = pb.get_user_by_id(str(user_id))
+
+                    if userRecord.friends > 0:
+                        logger.info(
+                            f"User {userRecord.username} (ID: {userRecord.id}) has {userRecord.friends} friends."
+                        )
+                        continue
+                except ClientResponseError as e:
+                    if "The requested resource wasn't found." in str(e):
+                        logger.warning(
+                            f"User with ID {user_id} not found in PocketBase. Skipping."
+                        )
+
+                friend_count = user_data.get("friends", 0)
+                pb.client.collection("tweet_users").update(
+                    userRecord.id, {"friends": friend_count}
+                )
+                logger.success(f"Updated friends count for user {user_id}.")
+
+        except Exception as e:
+            logger.error(
+                f"Error processing user file {user_file.name}: {userRecord.id} {type(e).__name__} - {e}"
+            )
+            continue
 
 
 @cli.command()
