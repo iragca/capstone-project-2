@@ -943,7 +943,7 @@ def get_from_oldbird(
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
-def classify_data() -> None:
+def classify_data(collection: str = "tweets_v2") -> None:
     """Classify data using HateBERT."""
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -966,7 +966,8 @@ def classify_data() -> None:
 
     try:
         while have_data:
-            tweetRecord = pb.get_tweet_with_no_classification()
+            tweetRecord = pb.get_tweet_with_no_classification(collection=collection)
+            tweetRecord: Record = pb.client.collection("tweets_v2").get_one(tweetRecord.id)
             tweet = Tweet(**tweetRecord.__dict__)
             logger.info(f"Classifying tweet: {tweet.tweet_id}")
             text_class = classify_text(tweet.text)
