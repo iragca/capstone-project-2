@@ -59,6 +59,12 @@ def arg_parser():
         default=False,
         help="Whether to use a directed graph.",
     )
+    parser.add_argument(
+        "--c",
+        action="store_true",
+        default=False,
+        help="Flag if you are configuring/developing/testing this script",
+    )
 
     args = parser.parse_args()
 
@@ -148,7 +154,6 @@ def main():
         for split_name, split_dataset in datasets.items()
     }
 
-
     features_selected = node_features.tweet + node_features.user
     mlflow_dataset = mlflow.data.from_pandas(
         data.select(features_selected).to_pandas(),
@@ -166,11 +171,19 @@ def main():
         mlflow.log_input(
             mlflow_dataset, context="training", tags={"source": "X / Twitter"}
         )
-        mlflow.set_tag("purpose", "training")
+        mlflow.set_tag("purpose", "configuration" if args["c"] else "training")
         mlflow.set_tag("framework", "pytorch")
         mlflow.set_tag("task", "link prediction")
         mlflow.set_tag("nature", "transductive")
-        best_model = train(model, dataloaders, optimizer, args)
+
+        try:
+            best_model = train(model, dataloaders, optimizer, args)
+        except Exception as e:
+            with open("error_log.txt", "w") as f:
+                f.write(str(e))
+            mlflow.log_artifact("error_log.txt")
+            mlflow.set_tag("error", "Training failed")
+            raise
 
         with open("model_summary.txt", "w") as f:
             f.write(
