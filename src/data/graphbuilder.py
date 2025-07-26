@@ -1,13 +1,16 @@
 from typing import Literal
 
+from src.models import Features
 import networkx as nx
 import polars as pl
 import torch
 
 
 class GraphBuilder:
-    def __init__(self, data: pl.DataFrame):
+    def __init__(self, data: pl.DataFrame, node_features: Features):
         self.data = data
+        self.node_features = node_features
+        self.max_features = max(len(node_features.tweet), len(node_features.user))
 
     def create_graph(self, dtype: nx.Graph | nx.DiGraph) -> nx.Graph | nx.DiGraph:
         """Create a bipartite graph from the dataset.
@@ -40,8 +43,15 @@ class GraphBuilder:
                 node_label=is_hateful,
                 bipartite=0,
                 node_feature=tweet_features,
+                node_type="tweet",
             )
-            G.add_node(user_id, node_label=3, bipartite=1, node_feature=user_features)
+            G.add_node(
+                user_id,
+                node_label=3,
+                bipartite=1,
+                node_feature=user_features,
+                node_type="user",
+            )
             if tweet_id and user_id:
                 G.add_edge(tweet_id, user_id)
 
@@ -51,36 +61,21 @@ class GraphBuilder:
         self, row: dict, node_type: Literal["tweet", "user"]
     ) -> torch.Tensor:
         """Get features for a tweet node."""
-        match node_type:
-            case "user":
-                return torch.tensor(
-                    [
-                        row["favourites_count"],
-                        row["follower_count"],
-                        row["following_count"],
-                        row["number_of_tweets"],
-                        row["listed_count"],
-                        row["is_blue_verified"],
-                        0,
-                    ],
-                    dtype=torch.float32,
-                )
+        if node_type not in ["tweet", "user"]:
+            raise ValueError("Invalid node type. Use 'tweet' or 'user'.")
 
-            case "tweet":
-                return torch.tensor(
-                    [
-                        row["favorite_count"],
-                        row["retweet_count"],
-                        row["bookmark_count"],
-                        row["reply_count"],
-                        row["quote_count"],
-                        row["views"],
-                        row["is_hateful"],
-                    ],
-                    dtype=torch.float32,
-                )
-            case _:
-                raise ValueError("node_type must be either 'tweet' or 'user'.")
+        model_dict: dict = self.node_features.model_dump()
+        feature_list: list[str] = model_dict[node_type]
+
+        features_dict = {feature: row[feature] for feature in feature_list}
+
+        features_list = list(features_dict.values())
+
+        if len(features_list) < self.max_features:
+            # Pad the features list with zeros if it is shorter than max_features
+            features_list += [0] * (self.max_features - len(features_list))
+
+        return torch.tensor(features_list, dtype=torch.float32)
 
     def _validate_graph_inputs(self, data: pl.DataFrame, dtype: type) -> None:
         self._check_is_dataframe(data)
