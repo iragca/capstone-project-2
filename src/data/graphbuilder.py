@@ -1,9 +1,10 @@
 from typing import Literal
 
-from src.models import Features
 import networkx as nx
 import polars as pl
 import torch
+
+from src.models import Features
 
 
 class GraphBuilder:
@@ -12,7 +13,7 @@ class GraphBuilder:
         self.node_features = node_features
         self.max_features = max(len(node_features.tweet), len(node_features.user))
 
-    def create_graph(self, dtype: nx.Graph | nx.DiGraph) -> nx.Graph | nx.DiGraph:
+    def create_graph(self, directed: bool = False) -> nx.Graph | nx.DiGraph:
         """Create a bipartite graph from the dataset.
 
         Args:
@@ -23,9 +24,12 @@ class GraphBuilder:
             nx.Graph | nx.DiGraph: The created graph.
         """
 
-        self._validate_graph_inputs(self.data, dtype)
+        self._validate_graph_inputs(self.data)
 
-        G: nx.Graph | nx.DiGraph = dtype()
+        if directed:
+            G = nx.DiGraph()
+        else:
+            G = nx.Graph()
 
         for row in self.data.iter_rows(named=True):
             tweet_id = row["tweet_id"]
@@ -77,10 +81,9 @@ class GraphBuilder:
 
         return torch.tensor(features_list, dtype=torch.float32)
 
-    def _validate_graph_inputs(self, data: pl.DataFrame, dtype: type) -> None:
+    def _validate_graph_inputs(self, data: pl.DataFrame) -> None:
         self._check_is_dataframe(data)
         self._check_not_empty(data)
-        self._check_graph_type(dtype)
         self._check_no_nulls(data)
 
     def _check_no_nulls(self, data: pl.DataFrame) -> None:
@@ -96,11 +99,6 @@ class GraphBuilder:
     def _check_not_empty(data: pl.DataFrame) -> None:
         if data.is_empty():
             raise ValueError("Dataset is empty. Please load a valid dataset.")
-
-    @staticmethod
-    def _check_graph_type(dtype: type) -> None:
-        if dtype not in (nx.Graph, nx.DiGraph):
-            raise ValueError("Unsupported graph type. Use nx.Graph or nx.DiGraph.")
 
     @staticmethod
     def _has_null(data: pl.DataFrame) -> bool:
