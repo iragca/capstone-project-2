@@ -10,6 +10,7 @@ import polars as pl
 import torch
 from deepsnap.batch import Batch
 from deepsnap.dataset import GraphDataset
+from deepsnap.hetero_graph import HeteroGraph
 from mlflow.models.signature import ModelSignature
 from mlflow.types.schema import Schema, TensorSpec
 from sklearn.metrics import f1_score, roc_auc_score
@@ -17,10 +18,10 @@ from torch.utils.data import DataLoader
 from torchinfo import summary
 from tqdm import tqdm
 
-from src.architectures.LinkPrediction import HateBERT
+from src.architectures import HeteroGNN, HomoGNN
 from src.data import DatasetLoader, GraphBuilder, Preprocessor
-from src.models import Features
 from src.db import PBWarehouse
+from src.models import Features
 
 
 def arg_parser():
@@ -45,6 +46,18 @@ def arg_parser():
         type=int,
         default=10,
         help="Number of layers in the model.",
+    )
+    parser.add_argument(
+        "--heterogeneous",
+        action="store_true",
+        default=False,
+        help="Whether to use a heterogeneous graph.",
+    )
+    parser.add_argument(
+        "--directed",
+        action="store_true",
+        default=False,
+        help="Whether to use a directed graph.",
     )
 
     args = parser.parse_args()
@@ -97,7 +110,8 @@ def main():
     )
 
     gb = GraphBuilder(data=data, node_features=node_features)
-    graph: nx.DiGraph = gb.create_graph(dtype=nx.DiGraph)
+
+    graph: nx.DiGraph | nx.Graph = gb.create_graph(directed=args["directed"])
 
     dataset = GraphDataset([graph], task="link_pred", edge_train_mode="disjoint")
 
@@ -108,11 +122,17 @@ def main():
     input_dim = datasets["train"].num_node_features
     # num_classes = datasets["train"].num_edge_labels
 
-    model = HateBERT(
-        input_size=input_dim,
-        hidden_size=args["hidden_dim"],
-        num_layers=args["num_layers"],
-    ).to(args["device"])
+    if args["heterogeneous"]:
+        graph = HeteroGraph(graph)
+        model = HeteroGNN(hetero=graph, hidden_size=args["hidden_dim"]).to(
+            args["device"]
+        )
+    else:
+        model = HomoGNN(
+            input_size=input_dim,
+            hidden_size=args["hidden_dim"],
+            num_layers=args["num_layers"],
+        ).to(args["device"])
 
     optimizer = torch.optim.SGD(
         model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4
@@ -128,8 +148,10 @@ def main():
         for split_name, split_dataset in datasets.items()
     }
 
+
+    features_selected = node_features.tweet + node_features.user
     mlflow_dataset = mlflow.data.from_pandas(
-        data.to_pandas(),
+        data.select(features_selected).to_pandas(),
         name="HateBERT Dataset",
     )
 
@@ -201,8 +223,8 @@ def main():
         print(
             f"Best Train ROC AUC: {best_train_scores['roc_auc']:.4f}, "
             f"Best Val ROC AUC: {best_val_scores['roc_auc']:.4f}, "
-            f"Best Test ROC AUC: {best_test_scores['roc_auc']:.4f} "
-            f"Best Test F1 Score: {best_test_scores['f1_score']:.4f}, "
+            f"Best Test ROC AUC: {best_test_scores['roc_auc']:.4f}, "
+            f"Best Test F1 Score: {best_test_scores['f1_score']:.4f} "
         )
 
         torch.save(best_model.state_dict(), "best_model.pth")
