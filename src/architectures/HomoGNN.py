@@ -6,11 +6,11 @@ from torch_geometric.nn import SAGEConv
 from torch_geometric.nn import GCNConv
 
 
-class HateBERT(torch.nn.Module):
+class HomoGNN(torch.nn.Module):
     def __init__(
         self, input_size: int = 128, hidden_size: int = 128, num_layers: int = 10
     ):
-        super(HateBERT, self).__init__()
+        super(HomoGNN, self).__init__()
 
         self.conv1 = SAGEConv(input_size, hidden_size)
         self.bn1 = nn.BatchNorm1d(hidden_size)
@@ -50,7 +50,7 @@ class HateBERT(torch.nn.Module):
     def name(self):
         """Returns the name of the model."""
         return (
-            "HateBERT(GCNConv)"
+            "HomoGNN(GCNConv)"
             if isinstance(self.conv1, GCNConv)
-            else "HateBERT(SAGEConv)"
+            else "HomoGNN(SAGEConv)"
         )
