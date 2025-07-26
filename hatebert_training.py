@@ -18,13 +18,15 @@ from torchinfo import summary
 from tqdm import tqdm
 
 from src.architectures.LinkPrediction import HateBERT
-from src.utils.training import create_graph, load_data
+from src.data import DatasetLoader, GraphBuilder, Preprocessor
+from src.models import Features
+from src.db import PBWarehouse
 
 
 def arg_parser():
     parser = argparse.ArgumentParser(description="Link pred arguments.")
     parser.add_argument(
-        "--epochs", type=int, default=150, help="Number of epochs to train."
+        "--epochs", type=int, default=50, help="Number of epochs to train."
     )
     parser.add_argument(
         "--hidden_dim", type=int, default=128, help="Hidden dimension of the model."
@@ -37,6 +39,12 @@ def arg_parser():
         type=str,
         default="cuda" if torch.cuda.is_available() else "cpu",
         help="Device to use for training.",
+    )
+    parser.add_argument(
+        "--num_layers",
+        type=int,
+        default=10,
+        help="Number of layers in the model.",
     )
 
     args = parser.parse_args()
@@ -60,8 +68,37 @@ def main():
     warnings.filterwarnings("ignore")
     mlflow.set_tracking_uri(uri="http://192.168.100.203:5000/")
     mlflow.set_experiment("[CAPSTONE-2] Link Prediction")
-    data: pl.DataFrame = load_data()
-    graph: nx.DiGraph = create_graph(data)
+
+    dataset_loader = DatasetLoader(PBWarehouse())
+    data: pl.DataFrame = dataset_loader.load_dataset()
+    preprocessor = Preprocessor(data=data)
+    data = preprocessor.preprocess()
+
+    node_features = Features(
+        tweet=[
+            "favorite_count",
+            # "retweet_count",
+            # "bookmark_count",
+            "reply_count",
+            "quote_count",
+            # "views",
+            "source",
+            "is_hateful",
+        ],
+        user=[
+            # "favourites_count",
+            # "follower_count",
+            # "following_count",
+            # "number_of_tweets",
+            # "listed_count",
+            # "is_blue_verified",
+            "friends",
+        ],
+    )
+
+    gb = GraphBuilder(data=data, node_features=node_features)
+    graph: nx.DiGraph = gb.create_graph(dtype=nx.DiGraph)
+
     dataset = GraphDataset([graph], task="link_pred", edge_train_mode="disjoint")
 
     datasets = {}
@@ -71,7 +108,11 @@ def main():
     input_dim = datasets["train"].num_node_features
     # num_classes = datasets["train"].num_edge_labels
 
-    model = HateBERT(input_dim, args["hidden_dim"]).to(args["device"])
+    model = HateBERT(
+        input_size=input_dim,
+        hidden_size=args["hidden_dim"],
+        num_layers=args["num_layers"],
+    ).to(args["device"])
 
     optimizer = torch.optim.SGD(
         model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4
@@ -91,9 +132,11 @@ def main():
         data.to_pandas(),
         name="HateBERT Dataset",
     )
-   
+
     # Suppress warnings
-    logging.getLogger("mlflow.system_metrics.metrics.gpu_monitor").setLevel(logging.ERROR)
+    logging.getLogger("mlflow.system_metrics.metrics.gpu_monitor").setLevel(
+        logging.ERROR
+    )
     logging.getLogger("mlflow.utils.requirements_utils").setLevel(logging.ERROR)
     logging.getLogger("mlflow.utils.environment").setLevel(logging.ERROR)
     with mlflow.start_run(log_system_metrics=True):
@@ -158,9 +201,11 @@ def main():
         print(
             f"Best Train ROC AUC: {best_train_scores['roc_auc']:.4f}, "
             f"Best Val ROC AUC: {best_val_scores['roc_auc']:.4f}, "
-            f"Best Test ROC AUC: {best_test_scores['roc_auc']:.4f}"
+            f"Best Test ROC AUC: {best_test_scores['roc_auc']:.4f} "
             f"Best Test F1 Score: {best_test_scores['f1_score']:.4f}, "
         )
+
+        torch.save(best_model.state_dict(), "best_model.pth")
 
 
 def train(model, dataloaders, optimizer, args, print_progress=False):
