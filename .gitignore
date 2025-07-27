@@ -6,6 +6,10 @@ dist/
 wheels/
 *.egg-info
 
+# custom artifacts
+best_model.pth
+error_log.txt
+
 # Virtual environments
 .venv
 
