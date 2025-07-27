@@ -30,14 +30,21 @@ class DatasetLoader:
             raise ValueError(
                 "Unsupported dtype. Use pl.DataFrame or nx.Graph/nx.DiGraph."
             )
+        
+        dataset_exists = self.dataset_path.exists()
+        db_exists = self.pb is not None
 
-        if not self.dataset_path.exists() and self.pb is not None:
+        if not dataset_exists and db_exists:
             inline_print("Dataset cache not found.\n")
             df = self.get_dataset()
             if cache:
                 self._cache_dataset(df)
-        else:
+        elif dataset_exists:
             df = self.get_cached_dataset()
+        else:
+            raise FileNotFoundError(
+                "Dataset not found. Make sure to pass a valid PBWarehouse to fetch the dataset."
+            )
 
         if dtype == pl.DataFrame:
             return df
