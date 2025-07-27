@@ -10,7 +10,7 @@ from ..utils import ensure_path, function_printer, inline_print
 
 
 class DatasetLoader:
-    def __init__(self, pb: PBWarehouse, cache_dir=DATA_DIR / ".cache"):
+    def __init__(self, pb: PBWarehouse = None, cache_dir=DATA_DIR / ".cache"):
         self.cache_dir = cache_dir
         self.dataset_path = self.cache_dir / "dataset_cache.csv"
         self.pb = pb
@@ -31,7 +31,7 @@ class DatasetLoader:
                 "Unsupported dtype. Use pl.DataFrame or nx.Graph/nx.DiGraph."
             )
 
-        if not self.dataset_path.exists():
+        if not self.dataset_path.exists() and self.pb is not None:
             inline_print("Dataset cache not found.\n")
             df = self.get_dataset()
             if cache:
