@@ -13,12 +13,14 @@ class GraphBuilder:
         self.node_features = node_features
         self.max_features = max(len(node_features.tweet), len(node_features.user))
 
-    def create_graph(self, directed: bool = False) -> nx.Graph | nx.DiGraph:
+    def create_graph(
+        self, directed: bool = False, heterogeneous: bool = False
+    ) -> nx.Graph | nx.DiGraph:
         """Create a bipartite graph from the dataset.
 
         Args:
-            data (pl.DataFrame): The dataset to create the graph from.
-            dtype (nx.Graph | nx.DiGraph): The type of graph to create.
+            directed (bool): Whether to create a directed graph. Defaults to False.
+            heterogeneous (bool): Whether to create a heterogeneous graph with different edge types. Defaults to False.
 
         Returns:
             nx.Graph | nx.DiGraph: The created graph.
@@ -33,7 +35,7 @@ class GraphBuilder:
 
         for row in self.data.iter_rows(named=True):
             tweet_id = row["tweet_id"]
-            is_hateful = row["is_hateful"]
+            # is_hateful = row["is_hateful"]
             user_id = row["user_id"]
 
             tweet_features = self.get_features(row, "tweet")
@@ -44,20 +46,26 @@ class GraphBuilder:
 
             G.add_node(
                 tweet_id,
-                node_label=is_hateful,
-                bipartite=0,
                 node_feature=tweet_features,
-                node_type="tweet",
+                node_type="test_node_type",
             )
             G.add_node(
                 user_id,
-                node_label=3,
-                bipartite=1,
                 node_feature=user_features,
-                node_type="user",
+                node_type="test_node_type",
             )
             if tweet_id and user_id:
-                G.add_edge(tweet_id, user_id)
+                if heterogeneous:
+                    # `G.add_edge(user_id -> tweet_id)` if directed
+                    G.add_edge(
+                        user_id,
+                        tweet_id,
+                        edge_feature=torch.zeros(self.max_features, dtype=torch.float32),
+                        edge_type="replied_to",
+                    )
+                else:
+                    # `G.add_edge(user_id -> tweet_id)` if directed
+                    G.add_edge(user_id, tweet_id)
 
         return G
 
