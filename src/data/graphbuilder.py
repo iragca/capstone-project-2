@@ -1,3 +1,4 @@
+import random
 from typing import Literal
 
 import networkx as nx
@@ -5,6 +6,27 @@ import polars as pl
 import torch
 
 from src.models import Features
+
+
+class CustomGraph(nx.Graph):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_random_user(self) -> int:
+        """
+        Get a random user node from the graph.
+
+        Returns:
+            int: The ID of a random user node.
+        """
+        user_nodes = [
+            node
+            for node, data in self.nodes(data=True)
+            if data.get("node_type") == "user"
+        ]
+        if not user_nodes:
+            raise ValueError("No user nodes found in the graph.")
+        return random.choice(user_nodes)
 
 
 class GraphBuilder:
@@ -31,11 +53,11 @@ class GraphBuilder:
         if directed:
             G = nx.DiGraph()
         else:
-            G = nx.Graph()
+            G = CustomGraph()
 
         for row in self.data.iter_rows(named=True):
             tweet_id = row["tweet_id"]
-            # is_hateful = row["is_hateful"]
+            is_hateful = row["is_hateful"]
             user_id = row["user_id"]
 
             tweet_features = self.get_features(row, "tweet")
@@ -46,13 +68,15 @@ class GraphBuilder:
 
             G.add_node(
                 tweet_id,
+                node_label=is_hateful,
                 node_feature=tweet_features,
-                node_type="test_node_type",
+                node_type="n0" if heterogeneous else "tweet",
             )
             G.add_node(
                 user_id,
+                node_label=3,
                 node_feature=user_features,
-                node_type="test_node_type",
+                node_type="n0" if heterogeneous else "user",
             )
             if tweet_id and user_id:
                 if heterogeneous:
@@ -60,7 +84,9 @@ class GraphBuilder:
                     G.add_edge(
                         user_id,
                         tweet_id,
-                        edge_feature=torch.zeros(self.max_features, dtype=torch.float32),
+                        edge_feature=torch.zeros(
+                            self.max_features, dtype=torch.float32
+                        ),
                         edge_type="replied_to",
                     )
                 else:
