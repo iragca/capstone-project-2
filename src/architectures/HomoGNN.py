@@ -38,10 +38,7 @@ class HomoGNN(torch.nn.Module):
             x = self.bns[i](x)
             x = F.relu(x)
 
-        nodes_first = torch.index_select(x, 0, edge_label_index[0, :].long())
-        nodes_second = torch.index_select(x, 0, edge_label_index[1, :].long())
-        pred = torch.sum(nodes_first * nodes_second, dim=-1)
-        return pred
+        return x, edge_label_index
 
     def loss(self, pred, label):
         return self.loss_fn(pred, label)

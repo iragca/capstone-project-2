@@ -252,7 +252,12 @@ def train(model, dataloaders, optimizer, args, print_progress=False):
             batch.to(args["device"])
             model.train()
             optimizer.zero_grad()
-            pred = model(batch)
+            embeddings, edge_label_index = model(batch)
+
+            nodes_first = torch.index_select(embeddings, 0, edge_label_index[0, :].long())
+            nodes_second = torch.index_select(embeddings, 0, edge_label_index[1, :].long())
+            pred = torch.sum(nodes_first * nodes_second, dim=-1)
+
             loss = model.loss(pred, batch.edge_label.type(pred.dtype))
             # print(pred[0], batch.edge_label.type(pred.dtype)[0])
             loss.backward()
@@ -299,7 +304,10 @@ def test(model, dataloader, args):
     num_batches = 0
     for batch in dataloader:
         batch.to(args["device"])
-        pred = model(batch)
+        embeddings, edge_label_index = model(batch)
+        nodes_first = torch.index_select(embeddings, 0, edge_label_index[0, :].long())
+        nodes_second = torch.index_select(embeddings, 0, edge_label_index[1, :].long())
+        pred = torch.sum(nodes_first * nodes_second, dim=-1)
         pred = torch.sigmoid(pred)
         score += roc_auc_score(
             batch.edge_label.flatten().cpu().numpy(), pred.flatten().data.cpu().numpy()
