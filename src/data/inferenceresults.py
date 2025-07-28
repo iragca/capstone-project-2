@@ -85,34 +85,47 @@ class InferenceResults:
         ]
 
     def get_top_k_similar_nodes_linked_to_user(
-        self, user_id: int, k: int = 10, descending: bool = True, label: Literal[0, 1, 2, 3] = 0
-    ) -> list[int]:
+    self,
+    user_id: int,
+    k: int = 10,
+    descending: bool = True,
+    label: Literal[0, 1, 2, 3] = 0
+    ) -> list[tuple[int, float]]:
         """
-        Get the top k similar nodes linked to a specific user.
+        Get the top-k nodes of a certain label that are most likely connected to the user.
 
         Args:
             user_id (int): The ID of the user node.
-            k (int): The number of top similar nodes to return.
+            k (int): Number of top similar nodes to return.
+            descending (bool): Sort high to low probabilities if True.
+            label (int): Label of candidate nodes to compare against.
 
         Returns:
-            list[int]: A list of indices of the top k similar nodes linked to the user.
+            list[tuple[int, float]]: List of (node_id, probability) tuples.
         """
-        user_id_index = self.get_node_index_using_node(user_id)
-
-        if user_id_index is None:
+        user_index = self.get_node_index_using_node(user_id)
+        if user_index is None:
             raise ValueError(f"User with ID {user_id} not found in the graph.")
 
-        similar_nodes_indexes = self.get_index_of_nodes_with_label(label)
-        similar_nodes_ids = [self.node_list[index][0] for index in similar_nodes_indexes]
+        candidate_indexes = self.get_index_of_nodes_with_label(label)
+        if not candidate_indexes:
+            return []
 
-        node_logits = torch.sum(self.nodes_second * torch.index_select(self.node_embeddings, 0, torch.tensor([user_id_index])), dim=-1)
-        node_pred = torch.sigmoid(node_logits)
+        candidate_embeddings = self.node_embeddings[candidate_indexes]  # (num_candidates, dim)
+        user_embedding = self.node_embeddings[user_index]               # (dim,)
+        
+        # Compute dot product similarity and convert to probability
+        logits = torch.matmul(candidate_embeddings, user_embedding)     # (num_candidates,)
+        probs = torch.sigmoid(logits)                                   # (num_candidates,)
 
-        scores = []
-        for thing in zip(similar_nodes_ids, torch.index_select(node_pred, 0, torch.tensor(similar_nodes_indexes))):
-            scores.append(thing)
+        # Get node IDs from indices
+        candidate_node_ids = [self.node_list[i][0] for i in candidate_indexes]
 
-        scores = sorted(scores, key=lambda x: x[1], reverse=descending)
+        # Pair each node ID with its probability
+        scored = list(zip(candidate_node_ids, probs.tolist()))
 
-        return scores[:k]
+        # Sort and return top-k
+        scored_sorted = sorted(scored, key=lambda x: x[1], reverse=descending)
+        return scored_sorted[:k]
+
 
