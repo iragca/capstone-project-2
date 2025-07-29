@@ -2,7 +2,8 @@ from pocketbase import PocketBase
 from pocketbase.errors import ClientResponseError
 from pocketbase.models import Record
 
-from ..config import Settings as s, logger
+from ..config import Settings as s
+from ..config import logger
 from ..models import Tweet, User
 
 
@@ -21,6 +22,28 @@ class PBWarehouse:
         except ClientResponseError as e:
             logger.error(f"Error fetching dataset: {e}")
             return []
+
+    def ingest_user(self, user: User) -> Record:
+        """Ingest a single User instance into the PocketBase warehouse."""
+        try:
+            assert isinstance(user, User), "Input must be a User instance"
+            updatedRecord = self.client.collection("tweet_users").create(
+                user.model_dump()
+            )
+            logger.success(
+                f"Successfully created user record with ID: {updatedRecord.id}"
+            )
+            return updatedRecord
+        except ClientResponseError as e:
+            if "validation_not_unique" in str(e):
+                logger.info(f"User with ID {user.user_id} already exists. Skipping.")
+                return None
+            else:
+                logger.error(f"Error ingesting user: {e}")
+                return None
+        except Exception as e:
+            logger.error(f"Error ingesting user: {e}, {user}")
+            return None
 
     def ingest_single_tweet(self, tweet: Tweet) -> Record:
         """Ingest a single Tweet instance into the PocketBase warehouse."""
@@ -141,6 +164,13 @@ class PBWarehouse:
         )
         return user
 
+    def get_user_by_username(self, username: str) -> Record:
+        assert isinstance(username, str), "username must be a string"
+        user = self.client.collection("tweet_users").get_first_list_item(
+            f"username = '{username}'"
+        )
+        return user
+
     def get_tweet_with_no_classification(self, collection: str = "tweets_v2") -> Record:
         """Get a tweet that has not been classified yet."""
         tweetRecord = self.client.collection(collection).get_first_list_item(
@@ -163,3 +193,26 @@ class PBWarehouse:
         userRecord = self.get_user_by_id(userRecord.user_id)
 
         return userRecord
+
+    def does_user_exist(self, user_id: str | None, username: str | None) -> bool:
+        """Check if a user exists in the PocketBase warehouse."""
+        if not user_id and not username:
+            raise ValueError("Either User ID or Username must be provided.")
+
+        try:
+            if user_id:
+                if not isinstance(user_id, str):
+                    raise ValueError("User ID must be a string.")
+                self.get_user_by_id(user_id)
+                return True
+
+            if username:
+                if not isinstance(username, str):
+                    raise ValueError("Username must be a string.")
+                self.get_user_by_username(username)
+                return True
+        except ClientResponseError as e:
+            if "The requested resource wasn't found." in str(e):
+                return False
+            else:
+                return False
