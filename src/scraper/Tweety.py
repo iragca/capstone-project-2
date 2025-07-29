@@ -1,13 +1,14 @@
 from pprint import pprint
 
 from tweety import TwitterAsync
+from tweety.filters import SearchFilters
 from tweety.types import Search, SelfThread
 from tweety.types import Tweet as TweetyTweet
+from tweety.types import User as TweetyUser
 
 from src.config import Settings as s
 from src.config import logger
-from src.models import Tweet
-from tweety.filters import SearchFilters
+from src.models import Tweet, User
 
 
 class TweetyScraper:
@@ -37,11 +38,16 @@ class TweetyScraper:
 
         data.to_xlsx()
 
-    async def get_tweets_of_user(self, username: str, pages: int = 100, wait_time: int = 30) -> list[dict]:
+    async def get_tweets_of_user(
+        self, username: str, pages: int = 100, wait_time: int = 30
+    ) -> list[dict]:
         app: TwitterAsync = await self.login()
 
         tweets: list[TweetyTweet] = await app.search(
-            f"(from:{username})", wait_time=wait_time, pages=pages, filter_=SearchFilters.Latest()
+            f"(from:{username})",
+            wait_time=wait_time,
+            pages=pages,
+            filter_=SearchFilters.Latest(),
         )
 
         if not tweets:
@@ -75,6 +81,35 @@ class TweetyScraper:
             logger.error(f"Error processing tweets for user {username}: {e}")
 
         return validated_tweets
+
+    async def get_user_info(self, user_id: int | None, username: str | None) -> User:
+        """
+        Get user information by user ID.
+
+        Args:
+            user_id (str): The ID of the user to retrieve information for.
+
+        Returns:
+            dict: A dictionary containing user information.
+        """
+
+        if not user_id and not username:
+            raise ValueError("Either User ID or Username must be provided.")
+
+        user_id = str(user_id) if user_id is not None else None
+
+        if username:
+            if not isinstance(username, str):
+                raise ValueError("Username must be a string.")
+
+        if user_id is not None:
+            if not isinstance(user_id, int):
+                raise ValueError("User ID must be numeric.")
+
+        app: TwitterAsync = await self.login()
+        user_info = await app.get_user_info(user_id or username)
+
+        return self.process_tweety_user(user_info)
 
     @staticmethod
     def process_tweety_tweet(tweet: TweetyTweet) -> dict:
@@ -121,3 +156,32 @@ class TweetyScraper:
         )
 
         return tweet.model_dump()
+
+    @staticmethod
+    def process_tweety_user(user: TweetyUser) -> User:
+        """
+        Process a Tweety user object into a dictionary.
+
+        Args:
+            user (User): The user object to process.
+
+        Returns:
+            dict: A dictionary containing user information.
+        """
+        return User(
+            user_id=user.id,
+            username=user.username,
+            name=user.name,
+            follower_count=user.followers_count,
+            following_count=user.following,
+            favourites_count=user.favourites_count,
+            listed_count=user.listed_count,
+            number_of_tweets=user.statuses_count,
+            is_private=user.protected,
+            is_blue_verified=user.verified,
+            location=user.location["location"] if user.location else None,
+            description=user.description,
+            status="not fetched",
+            creation_date=str(user.created_at),
+            friends=user.friends_count,
+        )
