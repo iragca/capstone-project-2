@@ -1,7 +1,6 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
-from typing import Literal
 
 
 class User(BaseModel):
@@ -13,11 +12,11 @@ class User(BaseModel):
     favourites_count: Optional[int] = 0
     listed_count: Optional[int] = 0
     number_of_tweets: Optional[int] = 0
-    is_private: Optional[bool]
-    is_verified: Optional[bool]
-    is_blue_verified: Optional[bool]
-    bot: Optional[bool]
-    location: Optional[str]
+    is_private: Optional[bool] = None
+    is_verified: Optional[bool] = None
+    is_blue_verified: Optional[bool] = None
+    bot: Optional[bool] = None
+    location: Optional[str] = None
     description: str
     status: Literal["fetched", "not fetched", "fetching", ""] = "not fetched"
     creation_date: Optional[str]
