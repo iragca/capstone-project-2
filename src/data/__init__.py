@@ -1,6 +1,11 @@
 from .datasetloader import DatasetLoader
-from .preprocessor import Preprocessor
 from .graphbuilder import GraphBuilder
 from .inferenceresults import InferenceResults
+from .preprocessor import Preprocessor
 
-__all__ = ["DatasetLoader", "Preprocessor", "GraphBuilder", "InferenceResults"]
+__all__ = [
+    "DatasetLoader",
+    "Preprocessor",
+    "GraphBuilder",
+    "InferenceResults",
+]
