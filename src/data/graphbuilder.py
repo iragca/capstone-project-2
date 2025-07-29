@@ -1,32 +1,9 @@
-import random
 from typing import Literal
 
-import networkx as nx
 import polars as pl
 import torch
 
-from src.models import Features
-
-
-class CustomGraph(nx.Graph):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def get_random_user(self) -> int:
-        """
-        Get a random user node from the graph.
-
-        Returns:
-            int: The ID of a random user node.
-        """
-        user_nodes = [
-            node
-            for node, data in self.nodes(data=True)
-            if data.get("node_type") == "user"
-        ]
-        if not user_nodes:
-            raise ValueError("No user nodes found in the graph.")
-        return random.choice(user_nodes)
+from src.models import DiGraph, Features, Graph
 
 
 class GraphBuilder:
@@ -37,7 +14,7 @@ class GraphBuilder:
 
     def create_graph(
         self, directed: bool = False, heterogeneous: bool = False
-    ) -> nx.Graph | nx.DiGraph:
+    ) -> Graph | DiGraph:
         """Create a bipartite graph from the dataset.
 
         Args:
@@ -51,9 +28,9 @@ class GraphBuilder:
         self._validate_graph_inputs(self.data)
 
         if directed:
-            G = nx.DiGraph()
+            G = DiGraph()
         else:
-            G = CustomGraph()
+            G = Graph()
 
         for row in self.data.iter_rows(named=True):
             tweet_id = row["tweet_id"]

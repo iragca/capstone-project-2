@@ -1,5 +1,6 @@
+from .customgraph import DiGraph, Graph
+from .features import Features
 from .tweet import Tweet
 from .user import User
-from .features import Features
 
-__all__ = ["Tweet", "User", "Features"]
+__all__ = ["Tweet", "User", "Features", "Graph", "DiGraph"]
