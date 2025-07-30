@@ -1,5 +1,6 @@
 from asyncio import run
 
+import polars as pl
 import streamlit as st
 import torch
 from deepsnap.dataset import GraphDataset
@@ -47,10 +48,10 @@ def load_data(_pb: PBWarehouse):
     return preprocessor.preprocess()
 
 
-model = load_model()
-pb = get_pb()
-scraper = get_scraper()
-data = load_data(pb)
+model: HomoGNN = load_model()
+pb: PBWarehouse = get_pb()
+scraper: TweetyScraper = get_scraper()
+data: pl.DataFrame = load_data(pb)
 
 node_features = Features(
     tweet=[
@@ -96,7 +97,6 @@ with col1:
             st.stop()
         if len(x_handle) == 0:
             x_handle = None
-
 
     strict_matching = st.checkbox(
         label="Use strict matching for username",
