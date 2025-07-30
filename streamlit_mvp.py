@@ -76,7 +76,7 @@ node_features = Features(
 
 
 gb = GraphBuilder(data=data, node_features=node_features)
-graph = gb.create_graph()
+graph: Graph = gb.create_graph()
 
 
 col1, col2 = st.columns(2)
