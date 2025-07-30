@@ -82,9 +82,16 @@ async def main():
         user = User(**user_record.__dict__)
 
     else:
-        print(
-            f"User {args['user']} or {args['username']} does not exist in the database. Fetching user info..."
-        )
+        if args["user"] is not None:
+            print(
+                f"User {args['user']} does not exist in the database. Fetching user info..."
+            )
+
+        if args["username"] is not None:
+            print(
+                f"User {args['username']} does not exist in the database. Fetching user info..."
+            )
+
         user: User = await scraper.get_user_info(args["user"], args["username"])
         pb.ingest_user(user)
         print(f"User {user.user_id} fetched successfully.")
