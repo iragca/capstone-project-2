@@ -65,6 +65,12 @@ def arg_parser():
         default=False,
         help="Flag if you are configuring/developing/testing this script",
     )
+    parser.add_argument(
+        "--save-model",
+        action="store_true",
+        default=False,
+        help="Flag to save the best model after training.",
+    )
 
     args = parser.parse_args()
 
@@ -240,7 +246,9 @@ def main():
             f"Best Test F1 Score: {best_test_scores['f1_score']:.4f} "
         )
 
-        torch.save(best_model.state_dict(), "best_model.pth")
+        if args["save_model"]:
+            torch.save(best_model.state_dict(), "best_model.pth")
+            mlflow.log_artifact("best_model.pth")
 
 
 def train(model, dataloaders, optimizer, args, print_progress=False):
