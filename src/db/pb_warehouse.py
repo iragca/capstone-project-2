@@ -198,7 +198,9 @@ class PBWarehouse:
 
         return userRecord
 
-    def does_user_exist(self, user_id: str | None, username: str | None, strict: bool = True) -> bool:
+    def does_user_exist(
+        self, user_id: str | None, username: str | None, strict: bool = True
+    ) -> bool:
         """Check if a user exists in the PocketBase warehouse."""
         if not user_id and not username:
             raise ValueError("Either User ID or Username must be provided.")
@@ -220,3 +222,20 @@ class PBWarehouse:
                 return False
             else:
                 return False
+
+    def get_tweet_by_id(self, tweet_id: str | int) -> Record:
+        """Get a tweet by its ID."""
+
+        if isinstance(tweet_id, int):
+            try:
+                tweet_id = str(tweet_id)
+            except ValueError:
+                raise ValueError("tweet_id must be a string or an integer.")
+
+        assert isinstance(tweet_id, str), "tweet_id must be a string"
+        assert tweet_id.isdecimal(), "tweet_id must be a valid decimal string"
+
+        tweet = self.client.collection("tweets_v2").get_first_list_item(
+            f"tweet_id = '{tweet_id}'"
+        )
+        return tweet

@@ -120,6 +120,11 @@ async def main():
             user_id=user.user_id, descending=True, label=0
         )
 
+        topk_results = [
+            (pb.get_tweet_by_id(node_id), probability)
+            for node_id, probability in topk_results
+        ]
+
         print(f"Top similar nodes linked to user {user.user_id}:")
         pprint(topk_results)
 
