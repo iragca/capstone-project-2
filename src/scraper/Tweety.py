@@ -5,6 +5,7 @@ from tweety.filters import SearchFilters
 from tweety.types import Search, SelfThread
 from tweety.types import Tweet as TweetyTweet
 from tweety.types import User as TweetyUser
+from tweety.exceptions import UserNotFound
 
 from src.config import Settings as s
 from src.config import logger
@@ -92,24 +93,26 @@ class TweetyScraper:
         Returns:
             dict: A dictionary containing user information.
         """
+        try:
+            if not user_id and not username:
+                raise ValueError("Either User ID or Username must be provided.")
 
-        if not user_id and not username:
-            raise ValueError("Either User ID or Username must be provided.")
+            user_id = str(user_id) if user_id is not None else None
 
-        user_id = str(user_id) if user_id is not None else None
+            if username:
+                if not isinstance(username, str):
+                    raise ValueError("Username must be a string.")
 
-        if username:
-            if not isinstance(username, str):
-                raise ValueError("Username must be a string.")
+            if user_id is not None:
+                if not isinstance(user_id, int):
+                    raise ValueError("User ID must be numeric.")
 
-        if user_id is not None:
-            if not isinstance(user_id, int):
-                raise ValueError("User ID must be numeric.")
+            app: TwitterAsync = await self.login()
+            user_info = await app.get_user_info(user_id or username)
 
-        app: TwitterAsync = await self.login()
-        user_info = await app.get_user_info(user_id or username)
-
-        return self.process_tweety_user(user_info)
+            return self.process_tweety_user(user_info)
+        except UserNotFound:
+            return None
 
     @staticmethod
     def process_tweety_tweet(tweet: TweetyTweet) -> dict:
