@@ -5,7 +5,7 @@ from tweety.filters import SearchFilters
 from tweety.types import Search, SelfThread
 from tweety.types import Tweet as TweetyTweet
 from tweety.types import User as TweetyUser
-from tweety.exceptions import UserNotFound
+from tweety.exceptions import UserNotFound, TwitterError
 
 from src.config import Settings as s
 from src.config import logger
@@ -83,7 +83,9 @@ class TweetyScraper:
 
         return validated_tweets
 
-    async def get_user_info(self, user_id: int | None, username: str | None) -> User:
+    async def get_user_info(
+        self, user_id: int | None = None, username: str | None = None
+    ) -> User:
         """
         Get user information by user ID.
 
@@ -111,8 +113,14 @@ class TweetyScraper:
             app: TwitterAsync = await self.login()
             user_info = await app.get_user_info(user_id or username)
 
+            if user_info is None:
+                return None
+
             return self.process_tweety_user(user_info)
         except UserNotFound:
+            return None
+        except Exception as e:
+            logger.error(f"Error fetching user info: {e}")
             return None
 
     @staticmethod
