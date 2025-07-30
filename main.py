@@ -1019,7 +1019,7 @@ def install_torch_geometric_dependencies() -> None:
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
-def tweet_login_once() -> None:
+def tweety_login_once() -> None:
     """Log in to Twitter once. To generate your session token file."""
     scraper = TweetyScraper(previous_session=False)
     asyncio.run(scraper.login())
