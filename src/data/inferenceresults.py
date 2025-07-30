@@ -103,6 +103,16 @@ class InferenceResults:
         Returns:
             list[tuple[int, float]]: List of (node_id, probability) tuples.
         """
+
+        if not isinstance(user_id, int):
+            raise TypeError("user_id must be an integer.")
+
+        if not isinstance(k, int) or k <= 0:
+            raise ValueError("k must be a positive integer.")
+
+        if label not in [0, 1, 2, 3]:
+            raise ValueError("Label must be one of [0, 1, 2, 3].")
+
         user_index = self.get_node_index_using_node(user_id)
         if user_index is None:
             raise ValueError(f"User with ID {user_id} not found in the graph.")
