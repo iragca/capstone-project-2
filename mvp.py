@@ -21,6 +21,12 @@ async def main():
     parser.add_argument(
         "--username", type=str, help="Username to get user info for.", default=None
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Use strict matching for username.",
+        default=False,
+    )
     args = parser.parse_args().__dict__
 
     if not args["username"] and not args["user"]:
@@ -64,11 +70,15 @@ async def main():
 
     graph: Graph = gb.create_graph()
 
-    if pb.does_user_exist(user_id=args["user"], username=args["username"]):
+    if pb.does_user_exist(
+        user_id=args["user"], username=args["username"], strict=args["strict"]
+    ):
         if args["user"] is not None:
             user_record = pb.get_user_by_id(args["user"])
         else:
-            user_record = pb.get_user_by_username(args["username"])
+            user_record = pb.get_user_by_username(
+                args["username"], strict=args["strict"]
+            )
         user = User(**user_record.__dict__)
 
     else:
@@ -78,7 +88,7 @@ async def main():
         user: User = await scraper.get_user_info(args["user"], args["username"])
         pb.ingest_user(user)
         print(f"User {user.user_id} fetched successfully.")
-    
+
     print("Adding user to the graph...")
     user_vector = gb.get_features(user.model_dump(), "user")
     graph.add_node(

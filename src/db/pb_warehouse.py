@@ -164,11 +164,15 @@ class PBWarehouse:
         )
         return user
 
-    def get_user_by_username(self, username: str) -> Record:
+    def get_user_by_username(self, username: str, strict: bool = True) -> Record:
         assert isinstance(username, str), "username must be a string"
-        user = self.client.collection("tweet_users").get_first_list_item(
-            f"username = '{username}'"
-        )
+
+        if strict:
+            filter = f"username = '{username}'"
+        else:
+            filter = f"username ~ '{username}'"
+
+        user = self.client.collection("tweet_users").get_first_list_item(filter)
         return user
 
     def get_tweet_with_no_classification(self, collection: str = "tweets_v2") -> Record:
@@ -194,7 +198,7 @@ class PBWarehouse:
 
         return userRecord
 
-    def does_user_exist(self, user_id: str | None, username: str | None) -> bool:
+    def does_user_exist(self, user_id: str | None, username: str | None, strict: bool = True) -> bool:
         """Check if a user exists in the PocketBase warehouse."""
         if not user_id and not username:
             raise ValueError("Either User ID or Username must be provided.")
@@ -209,7 +213,7 @@ class PBWarehouse:
             if username:
                 if not isinstance(username, str):
                     raise ValueError("Username must be a string.")
-                self.get_user_by_username(username)
+                self.get_user_by_username(username, strict=strict)
                 return True
         except ClientResponseError as e:
             if "The requested resource wasn't found." in str(e):
