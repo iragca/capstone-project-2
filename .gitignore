@@ -23,6 +23,7 @@ error_log.txt
 # Environment variables
 .env
 *.env
+.streamlit/secrets.toml
 
 # data
 data/external/
