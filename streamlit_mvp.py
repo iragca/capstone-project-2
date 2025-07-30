@@ -94,6 +94,10 @@ with col1:
         if len(x_handle) == 0:
             x_handle = None
 
+        if x_handle.isdigit():
+            st.error("Please enter a valid Twitter handle.")
+            st.stop()
+
     strict_matching = st.checkbox(
         label="Use strict matching for username",
         value=False,
@@ -126,6 +130,9 @@ with col2:
         if len(x_user_id) == 0:
             x_user_id = None
 
+        if not x_user_id.isdigit():
+            st.error("Please enter a valid user ID.")
+            st.stop()
 
 if st.button(
     "Predict potential interactions with Extremist tweets",
