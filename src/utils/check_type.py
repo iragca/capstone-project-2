@@ -1,7 +1,7 @@
 from typing import Any
 
 
-def check_type(var: Any, expected_types: type, var_name: str) -> bool:
+def check_type(var: Any, expected_types: type | list[type], var_name: str) -> bool:
     """Check if a variable is of the expected type(s)."""
 
     if not isinstance(expected_types, list):
