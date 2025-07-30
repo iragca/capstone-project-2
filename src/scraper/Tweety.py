@@ -97,7 +97,8 @@ class TweetyScraper:
             if not user_id and not username:
                 raise ValueError("Either User ID or Username must be provided.")
 
-            user_id = str(user_id) if user_id is not None else None
+            if isinstance(user_id, str):
+                user_id = int(user_id)
 
             if username:
                 if not isinstance(username, str):
