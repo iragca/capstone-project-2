@@ -5,6 +5,7 @@ from pocketbase.models import Record
 from ..config import Settings as s
 from ..config import logger
 from ..models import Tweet, User
+from ..utils import check_type
 
 
 class PBWarehouse:
@@ -26,7 +27,7 @@ class PBWarehouse:
     def ingest_user(self, user: User) -> Record:
         """Ingest a single User instance into the PocketBase warehouse."""
         try:
-            assert isinstance(user, User), "Input must be a User instance"
+            check_type(user, User, "user")
             updatedRecord = self.client.collection("tweet_users").create(
                 user.model_dump()
             )
@@ -48,7 +49,7 @@ class PBWarehouse:
     def ingest_single_tweet(self, tweet: Tweet) -> Record:
         """Ingest a single Tweet instance into the PocketBase warehouse."""
         try:
-            assert isinstance(tweet, Tweet), "Input must be a Tweet instance"
+            check_type(tweet, Tweet, "tweet")
             assert tweet.user_id, "Tweet must have a user_id"
 
             updatedRecord = self.client.collection("tweets_v2").create(
@@ -71,7 +72,7 @@ class PBWarehouse:
             return None
 
     def ingest_tweet(self, tweet: dict) -> dict[str, Record]:
-        assert isinstance(tweet, dict), "Input must be a dictionary"
+        check_type(tweet, dict, "tweet")
         processed_tweet = self._process_tweet(tweet)
         processed_user = self._process_user(tweet)
 
@@ -110,7 +111,7 @@ class PBWarehouse:
 
     @staticmethod
     def _process_tweet(tweet: dict) -> dict[str, any]:
-        assert isinstance(tweet, dict), "Input must be a dictionary"
+        check_type(tweet, dict, "tweet")        
 
         text = tweet.get("text", "")
         user_id = tweet.get("user", {}).get("user_id", "")
@@ -141,13 +142,13 @@ class PBWarehouse:
 
     @staticmethod
     def _process_user(tweet: dict) -> dict[str, any]:
-        assert isinstance(tweet, dict), "Input must be a dictionary"
+        check_type(tweet, dict, "tweet")
         user = tweet.get("user", {})
         parsed_user = User(**user)
         return parsed_user.model_dump()
 
     def update_has_fetched_replies(self, tweet_id: str) -> Record:
-        assert isinstance(tweet_id, str), "tweet_id must be a string"
+        check_type(tweet_id, str, "tweet_id")
         record = self.client.collection("tweets_v2").get_list(
             1, 1, {"filter": f"tweet_id = '{tweet_id}'"}
         )
@@ -158,14 +159,15 @@ class PBWarehouse:
         return updated_record
 
     def get_user_by_id(self, user_id: str) -> Record:
-        assert isinstance(user_id, str), "user_id must be a string"
+        check_type(user_id, str, "user_id")
         user = self.client.collection("tweet_users").get_first_list_item(
             f"user_id = '{user_id}'"
         )
         return user
 
     def get_user_by_username(self, username: str, strict: bool = True) -> Record:
-        assert isinstance(username, str), "username must be a string"
+        check_type(username, str, "username")
+        check_type(strict, bool, "strict")
 
         if strict:
             filter = f"username = '{username}'"
@@ -207,14 +209,12 @@ class PBWarehouse:
 
         try:
             if user_id:
-                if not isinstance(user_id, str):
-                    raise ValueError("User ID must be a string.")
+                check_type(user_id, str, "user_id")
                 self.get_user_by_id(user_id)
                 return True
 
             if username:
-                if not isinstance(username, str):
-                    raise ValueError("Username must be a string.")
+                check_type(username, str, "username")
                 self.get_user_by_username(username, strict=strict)
                 return True
         except ClientResponseError as e:
@@ -232,8 +232,8 @@ class PBWarehouse:
             except ValueError:
                 raise ValueError("tweet_id must be a string or an integer.")
 
-        assert isinstance(tweet_id, str), "tweet_id must be a string"
-        assert tweet_id.isdecimal(), "tweet_id must be a valid decimal string"
+        if not tweet_id.isdecimal():
+            raise ValueError("tweet_id must be a valid decimal string")
 
         tweet = self.client.collection("tweets_v2").get_first_list_item(
             f"tweet_id = '{tweet_id}'"
