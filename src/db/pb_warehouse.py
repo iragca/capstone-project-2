@@ -24,52 +24,47 @@ class PBWarehouse:
             logger.error(f"Error fetching dataset: {e}")
             return []
 
-    def ingest_user(self, user: User) -> Record:
+    def _ingest_record(
+        self, record: User | Tweet, model_name: str, collection_name: str
+    ) -> Record | None:
+        """Generic method to ingest a record into a PocketBase collection."""
+        try:
+            new_record = self.client.collection(collection_name).create(
+                record.model_dump()
+            )
+
+            logger.success(
+                f"Successfully created {model_name} record with ID: {new_record.id}"
+            )
+            return new_record
+
+        except ClientResponseError as e:
+            if "validation_not_unique" in str(e):
+                record_id = getattr(record, f"{model_name}_id", "unknown")
+                logger.info(
+                    f"{model_name.capitalize()} with ID {record_id} already exists. Skipping."
+                )
+                return None
+            else:
+                logger.error(f"Error ingesting {model_name}: {e}")
+                return None
+
+        except Exception as e:
+            logger.error(f"Unexpected error ingesting {model_name}: {e}, {record}")
+            return None
+
+    def ingest_user(self, user: User) -> Record | None:
         """Ingest a single User instance into the PocketBase warehouse."""
-        try:
-            check_type(user, User, "user")
-            updatedRecord = self.client.collection("tweet_users").create(
-                user.model_dump()
-            )
-            logger.success(
-                f"Successfully created user record with ID: {updatedRecord.id}"
-            )
-            return updatedRecord
-        except ClientResponseError as e:
-            if "validation_not_unique" in str(e):
-                logger.info(f"User with ID {user.user_id} already exists. Skipping.")
-                return None
-            else:
-                logger.error(f"Error ingesting user: {e}")
-                return None
-        except Exception as e:
-            logger.error(f"Error ingesting user: {e}, {user}")
-            return None
+        check_type(user, User, "user")
+        return self._ingest_record(user, "user", "tweet_users")
 
-    def ingest_single_tweet(self, tweet: Tweet) -> Record:
+    def ingest_single_tweet(self, tweet: Tweet) -> Record | None:
         """Ingest a single Tweet instance into the PocketBase warehouse."""
-        try:
-            check_type(tweet, Tweet, "tweet")
-            assert tweet.user_id, "Tweet must have a user_id"
-
-            updatedRecord = self.client.collection("tweets_v2").create(
-                tweet.model_dump()
-            )
-
-            logger.success(
-                f"Successfully created tweet record with ID: {updatedRecord.id}"
-            )
-            return updatedRecord
-        except ClientResponseError as e:
-            if "validation_not_unique" in str(e):
-                logger.info(f"Tweet with ID {tweet.tweet_id} already exists. Skipping.")
-                return None
-            else:
-                logger.error(f"Error ingesting tweet: {e}")
-                return None
-        except Exception as e:
-            logger.error(f"Error ingesting tweet: {e}, {tweet}")
+        check_type(tweet, Tweet, "tweet")
+        if not tweet.user_id:
+            logger.error("Tweet must have a user_id.")
             return None
+        return self._ingest_record(tweet, "tweet", "tweets_v2")
 
     def ingest_tweet(self, tweet: dict) -> dict[str, Record]:
         check_type(tweet, dict, "tweet")
@@ -111,7 +106,7 @@ class PBWarehouse:
 
     @staticmethod
     def _process_tweet(tweet: dict) -> dict[str, any]:
-        check_type(tweet, dict, "tweet")        
+        check_type(tweet, dict, "tweet")
 
         text = tweet.get("text", "")
         user_id = tweet.get("user", {}).get("user_id", "")
