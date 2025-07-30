@@ -843,6 +843,7 @@ def ingest_data() -> None:
 
 
 @cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def get_from_oldbird(
     num_requests: int = Option(
         100, "--num-requests", "-n", help="Number of requests to make"
@@ -861,8 +862,8 @@ def get_from_oldbird(
 
     logger.info(f"Using continuation token: {continuation_token}")
 
-    YEARS = range(2020, 2021)
-    MONTHS = range(3, 6)
+    YEARS = range(2022, 2025)
+    MONTHS = range(1, 13)
 
     for year in YEARS:
         for month in MONTHS:
@@ -1015,6 +1016,13 @@ def install_torch_geometric_dependencies() -> None:
         ["uv", "pip", "install", "torch-sparse", "-f", sparse_src],
         check=True,
     )
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
+def tweet_login_once() -> None:
+    """Log in to Twitter once."""
+    scraper = TweetyScraper(previous_session=False)
+    asyncio.run(scraper.login())
 
 
 if __name__ == "__main__":
