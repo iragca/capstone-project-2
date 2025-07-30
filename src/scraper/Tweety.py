@@ -5,7 +5,7 @@ from tweety.filters import SearchFilters
 from tweety.types import Search, SelfThread
 from tweety.types import Tweet as TweetyTweet
 from tweety.types import User as TweetyUser
-from tweety.exceptions import UserNotFound, TwitterError
+from tweety.exceptions import UserNotFound
 
 from src.config import Settings as s
 from src.config import logger
