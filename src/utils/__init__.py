@@ -1,12 +1,12 @@
 from .check_env_variable import check_env_variable
-from .greetings import greetings
-from .get_tweets_replies import get_tweet_replies
-from .get_user_tweets import get_user_tweets
+from .check_type import check_type
 from .ensure_path import ensure_path
 from .function_logger import function_logger
 from .function_printer import function_printer
+from .get_tweets_replies import get_tweet_replies
+from .get_user_tweets import get_user_tweets
+from .greetings import greetings
 from .inline_print import inline_print
-
 
 __all__ = [
     "check_env_variable",
@@ -17,4 +17,5 @@ __all__ = [
     "function_logger",
     "function_printer",
     "inline_print",
+    "check_type",
 ]
