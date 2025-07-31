@@ -122,8 +122,10 @@ if isinstance(x_handle, str):
     if x_handle.isdigit():
         st.error("Please enter a valid Twitter handle.")
         st.stop()
+    x_handle = x_handle.strip()
     if len(x_handle) == 0:
         x_handle = None
+
 
 if x_user_id == "None":
     x_user_id = None
@@ -132,8 +134,10 @@ if isinstance(x_user_id, str):
     if not x_user_id.isdigit():
         st.error("Please enter a valid user ID.")
         st.stop()
+    x_user_id = x_user_id.strip()
     if len(x_user_id) == 0:
-            x_user_id = None
+        x_user_id = None
+
 
 if st.button(
     "Predict potential interactions with Extremist tweets",
