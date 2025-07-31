@@ -19,6 +19,7 @@ from src.config import (
     Settings,
     logger,
 )
+from src.data import DatasetLoader
 from src.db import PBWarehouse
 from src.models import Tweet, User
 from src.scraper import RapidApiScraper, TweetyScraper
@@ -968,7 +969,9 @@ def classify_data(collection: str = "tweets_v2") -> None:
     try:
         while have_data:
             tweetRecord = pb.get_tweet_with_no_classification(collection=collection)
-            tweetRecord: Record = pb.client.collection("tweets_v2").get_one(tweetRecord.id)
+            tweetRecord: Record = pb.client.collection("tweets_v2").get_one(
+                tweetRecord.id
+            )
             tweet = Tweet(**tweetRecord.__dict__)
             logger.info(f"Classifying tweet: {tweet.tweet_id}")
             text_class = classify_text(tweet.text)
@@ -1017,12 +1020,21 @@ def install_torch_geometric_dependencies() -> None:
         check=True,
     )
 
+
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def tweety_login_once() -> None:
     """Log in to Twitter once. To generate your session token file."""
     scraper = TweetyScraper(previous_session=False)
     asyncio.run(scraper.login())
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
+def update_dataset_cache() -> None:
+    """Update the dataset cache."""
+    dataset_loader = DatasetLoader(PBWarehouse())
+    dataset_loader.update_cache()
 
 
 if __name__ == "__main__":
