@@ -89,15 +89,6 @@ with col1:
         label="Enter a Twitter handle (without @):",
         placeholder="e.g., elonmusk",
     )
-    if x_handle == "None":
-        x_handle = None
-
-    if isinstance(x_handle, str):
-        if x_handle.isdigit():
-            st.error("Please enter a valid Twitter handle.")
-            st.stop()
-        if len(x_handle) == 0:
-            x_handle = None
 
     strict_matching = st.checkbox(
         label="Use strict matching for username",
@@ -124,16 +115,25 @@ with col2:
         step=1,
     )
 
-    if x_user_id == "None":
-        x_user_id = None
+if x_handle == "None":
+    x_handle = None
 
-    if isinstance(x_user_id, str):
-        if not x_user_id.isdigit():
-            st.error("Please enter a valid user ID.")
-            st.stop()
-        if len(x_user_id) == 0:
+if isinstance(x_handle, str):
+    if x_handle.isdigit():
+        st.error("Please enter a valid Twitter handle.")
+        st.stop()
+    if len(x_handle) == 0:
+        x_handle = None
+
+if x_user_id == "None":
+    x_user_id = None
+
+if isinstance(x_user_id, str):
+    if not x_user_id.isdigit():
+        st.error("Please enter a valid user ID.")
+        st.stop()
+    if len(x_user_id) == 0:
             x_user_id = None
-
 
 if st.button(
     "Predict potential interactions with Extremist tweets",
