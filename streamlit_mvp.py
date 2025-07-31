@@ -20,13 +20,14 @@ st.set_page_config(
 )
 
 st.title("MVP Streamlit App")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 @st.cache_resource
 def load_model():
     model_path = PROJECT_ROOT / "best_model.pth"
-    model = HomoGNN(input_size=5, hidden_size=32)
-    model.load_state_dict(torch.load(model_path))
+    model = HomoGNN(input_size=5, hidden_size=32).to(DEVICE)
+    model.load_state_dict(torch.load(model_path, map_location=DEVICE))
     return model
 
 
@@ -196,11 +197,11 @@ if st.button(
 
     model.eval()
     with torch.no_grad():
-        node_embeddings, edge_label_index = model(dataset[0])
+        node_embeddings, edge_label_index = model(dataset[0].to(DEVICE))
         results = InferenceResults(
             graph=graph,
-            node_embeddings=node_embeddings,
-            edge_label_index=edge_label_index,
+            node_embeddings=node_embeddings.cpu(),
+            edge_label_index=edge_label_index.cpu(),
         )
 
         topk_results = results.get_top_k_similar_nodes_linked_to_user(
