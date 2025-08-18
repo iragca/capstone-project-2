@@ -42,4 +42,7 @@ We are only working with [uv](https://docs.astral.sh/uv/getting-started/installa
 
 | User Pic                                                                     | Name / Username                | Email                          | Role                             |
 | ---------------------------------------------------------------------------- | ------------------------------ | ------------------------------ | -------------------------------- |
-| <img src="https://avatars.githubusercontent.com/u/187070330?v=4" width="40"> | Chris Irag / [@iragca](https://github.com/iragca)          | chrisandrei.irag@1.ustp.edu.ph | Data Gathering, Developer, UI/UX |
+| <img src="https://avatars.githubusercontent.com/u/156993659?v=4" width="40"> | Karylle dela Cruz / [@kardcy](https://github.com/kardcy)        | -- | Data Annotation, Project Lead, Paper |
+| <img src="https://avatars.githubusercontent.com/u/187070330?v=4" width="40"> | Chris Irag / [@iragca](https://github.com/iragca)               | chrisandrei.irag@1.ustp.edu.ph | Database Admin, Developer, Paper |
+| -- | Dane Casiño           | -- | Data Annotation, Paper |
+| -- | Usher Raymond         | -- | Paper |
