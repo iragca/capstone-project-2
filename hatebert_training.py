@@ -44,7 +44,7 @@ def arg_parser():
     parser.add_argument(
         "--num_layers",
         type=int,
-        default=10,
+        default=8,
         help="Number of layers in the model.",
     )
     parser.add_argument(

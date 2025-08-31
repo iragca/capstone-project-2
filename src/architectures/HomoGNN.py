@@ -5,10 +5,9 @@ import torch.nn.functional as F
 from torch_geometric.nn import SAGEConv
 from torch_geometric.nn import GCNConv
 
-
 class HomoGNN(torch.nn.Module):
     def __init__(
-        self, input_size: int = 128, hidden_size: int = 128, num_layers: int = 10
+        self, input_size: int = 128, hidden_size: int = 128, num_layers: int = 8
     ):
         super(HomoGNN, self).__init__()
 
@@ -19,7 +18,7 @@ class HomoGNN(torch.nn.Module):
         self.convs = nn.ModuleList()
         self.bns = nn.ModuleList()
 
-        for _ in range(num_layers - 3):
+        for _ in range(num_layers - 1):
             self.convs.append(SAGEConv(hidden_size, hidden_size))
             self.bns.append(nn.BatchNorm1d(hidden_size))
 
