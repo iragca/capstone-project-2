@@ -71,6 +71,12 @@ def arg_parser():
         default=False,
         help="Flag to save the best model after training.",
     )
+    parser.add_argument(
+        "--graphsage",
+        action="store_true",
+        default=False,
+        help="Flag to use GraphSAGE convolutional layers instead of GCN.",
+    )
 
     args = parser.parse_args()
 
@@ -92,7 +98,7 @@ def main():
 
     warnings.filterwarnings("ignore")
     mlflow.set_tracking_uri(uri="http://192.168.100.203:5000/")
-    mlflow.set_experiment("[CAPSTONE-2] Link Prediction")
+    mlflow.set_experiment("[CAPSTONE-2] Link Prediction - 200 Epochs")
 
     dataset_loader = DatasetLoader(PBWarehouse())
     data: pl.DataFrame = dataset_loader.load_dataset()
@@ -144,6 +150,7 @@ def main():
             input_size=input_dim,
             hidden_size=args["hidden_dim"],
             num_layers=args["num_layers"],
+            GraphSAGE=args["graphsage"],
         ).to(args["device"])
 
     optimizer = torch.optim.SGD(
@@ -177,7 +184,7 @@ def main():
         mlflow.log_input(
             mlflow_dataset, context="training", tags={"source": "X / Twitter"}
         )
-        mlflow.set_tag("purpose", "configuration" if args["c"] else "training")
+        mlflow.set_tag("purpose", "finding the standard error")
         mlflow.set_tag("framework", "pytorch")
         mlflow.set_tag("task", "link prediction")
         mlflow.set_tag("nature", "transductive")
@@ -262,8 +269,12 @@ def train(model, dataloaders, optimizer, args, print_progress=False):
             optimizer.zero_grad()
             embeddings, edge_label_index = model(batch)
 
-            nodes_first = torch.index_select(embeddings, 0, edge_label_index[0, :].long())
-            nodes_second = torch.index_select(embeddings, 0, edge_label_index[1, :].long())
+            nodes_first = torch.index_select(
+                embeddings, 0, edge_label_index[0, :].long()
+            )
+            nodes_second = torch.index_select(
+                embeddings, 0, edge_label_index[1, :].long()
+            )
             pred = torch.sum(nodes_first * nodes_second, dim=-1)
 
             loss = model.loss(pred, batch.edge_label.type(pred.dtype))

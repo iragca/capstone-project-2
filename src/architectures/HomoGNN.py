@@ -7,11 +7,16 @@ from torch_geometric.nn import GCNConv
 
 class HomoGNN(torch.nn.Module):
     def __init__(
-        self, input_size: int = 128, hidden_size: int = 128, num_layers: int = 8
+        self, input_size: int = 128, hidden_size: int = 128, num_layers: int = 8, GraphSAGE: bool = True
     ):
         super(HomoGNN, self).__init__()
 
-        self.conv1 = SAGEConv(input_size, hidden_size)
+        if GraphSAGE:
+            conv_layer = SAGEConv
+        else:
+            conv_layer = GCNConv
+
+        self.conv1 = conv_layer(input_size, hidden_size)
         self.bn1 = nn.BatchNorm1d(hidden_size)
         self.loss_fn = torch.nn.BCEWithLogitsLoss()
 
@@ -19,7 +24,7 @@ class HomoGNN(torch.nn.Module):
         self.bns = nn.ModuleList()
 
         for _ in range(num_layers - 1):
-            self.convs.append(SAGEConv(hidden_size, hidden_size))
+            self.convs.append(conv_layer(hidden_size, hidden_size))
             self.bns.append(nn.BatchNorm1d(hidden_size))
 
     def forward(self, batch):
