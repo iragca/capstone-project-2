@@ -10,6 +10,32 @@ from ..utils import ensure_path, function_printer, inline_print
 
 
 class DatasetLoader:
+    """
+    DatasetLoader is a utility class for loading, caching, and parsing datasets from a PocketBase warehouse.
+    Attributes:
+        cache_dir (Path): Directory where the dataset cache is stored.
+        dataset_path (Path): Path to the cached dataset CSV file.
+        pb (PBWarehouse): An instance of PBWarehouse for fetching data from PocketBase.
+    Methods:
+        load_dataset(cache=True, dtype=pl.DataFrame | nx.Graph | nx.DiGraph) -> pl.DataFrame | nx.Graph | nx.DiGraph:
+            Loads the dataset from cache or PocketBase, optionally caching it, and returns it as a DataFrame or graph.
+        get_dataset() -> pl.DataFrame:
+            Fetches the dataset from PocketBase and returns it as a Polars DataFrame.
+        get_cached_dataset() -> pl.DataFrame:
+            Loads the cached dataset from disk and returns it as a Polars DataFrame.
+        update_cache() -> pl.DataFrame:
+            Fetches the latest dataset from PocketBase and updates the cache.
+        _cache_dataset(data: pl.DataFrame) -> None:
+            Saves the provided DataFrame to the cache directory.
+        _parse_records(records: list[Record]) -> list[dict]:
+            Parses a list of PocketBase records into a list of dictionaries, removing boilerplate keys.
+        _parse_record(record: Record) -> dict:
+            Static method to parse a single PocketBase record into a dictionary, removing boilerplate keys.
+    Raises:
+        ValueError: If an unsupported dtype is provided to load_dataset.
+        FileNotFoundError: If the dataset or cache is not found and cannot be loaded.
+    """
+
     def __init__(self, pb: PBWarehouse = None, cache_dir=DATA_DIR / ".cache"):
         self.cache_dir = cache_dir
         self.dataset_path = self.cache_dir / "dataset_cache.csv"
@@ -30,7 +56,7 @@ class DatasetLoader:
             raise ValueError(
                 "Unsupported dtype. Use pl.DataFrame or nx.Graph/nx.DiGraph."
             )
-        
+
         dataset_exists = self.dataset_path.exists()
         db_exists = self.pb is not None
 
