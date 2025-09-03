@@ -38,6 +38,37 @@ To install dependencies run:
 
 We are only working with [uv](https://docs.astral.sh/uv/getting-started/installation/) so if you don't have it, please install it using `pip install uv`.
 
+### main.py
+
+This is mostly just a combination of multiple data engineering scripts facilitating scraping, moving data, preprocessing tasks.
+It also includes helper scripts like `multiple-training` for manual grid hyperparameter gridsearch, `install-torch-geometric-dependencies` necessary
+for the libraries Pytorch Geometric and friends. This might need clean up 🧹.
+
+### Training
+
+The training is done in `hatebert_training.py`
+
+Most important modules needed for training is found in src/data
+
+- DatasetLoader
+- Preprocessor
+- GraphBuilder
+
+
+#### MLOps
+
+To maintain a streamlined supervision of training runs, we use MLFlow,
+
+
+### Using MVPs
+
+### MVP 1.0: CLI Tool
+
+
+### MVP 2.0: Streamlit
+
+
+
 ## Contributors
 
 | User Pic                                                                     | Name / Username                | Email                          | Role                             |
