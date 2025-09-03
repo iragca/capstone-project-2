@@ -7,6 +7,43 @@ from src.models import DiGraph, Features, Graph
 
 
 class GraphBuilder:
+    """
+    GraphBuilder constructs a bipartite (optionally heterogeneous and/or directed) graph from a tabular dataset,
+    assigning features to tweet and user nodes and optionally edge features/types.
+
+        data (pl.DataFrame): The input dataset containing tweet and user information.
+        node_features (Features): An object specifying which features to extract for tweet and user nodes.
+
+    Attributes:
+        data (pl.DataFrame): The dataset used to build the graph.
+        node_features (Features): The features specification for nodes.
+        max_features (int): The maximum number of features among tweet and user nodes, used for padding.
+
+    Methods:
+        create_graph(directed: bool = False, heterogeneous: bool = False) -> Graph | DiGraph:
+            Constructs and returns a bipartite graph (optionally directed and/or heterogeneous) from the dataset.
+            Nodes are created for tweets and users, with features and labels assigned.
+            Edges are added between users and tweets, with optional edge features and types for heterogeneous graphs.
+
+        get_features(row: dict, node_type: Literal["tweet", "user"]) -> torch.Tensor:
+            Extracts and returns a padded tensor of features for a given node (tweet or user) from a data row.
+
+        _validate_graph_inputs(data: pl.DataFrame) -> None:
+            Validates the input DataFrame for correct type, non-emptiness, and absence of nulls.
+
+        _check_no_nulls(data: pl.DataFrame) -> None:
+            Raises an error if the DataFrame contains null values.
+
+        _check_is_dataframe(data: pl.DataFrame) -> None:
+            Raises an error if the input is not a polars DataFrame.
+
+        _check_not_empty(data: pl.DataFrame) -> None:
+            Raises an error if the DataFrame is empty.
+
+        _has_null(data: pl.DataFrame) -> bool:
+            Returns True if the DataFrame contains any null values, False otherwise.
+    """
+
     def __init__(self, data: pl.DataFrame, node_features: Features):
         self.data = data
         self.node_features = node_features
@@ -19,7 +56,9 @@ class GraphBuilder:
 
         Args:
             directed (bool): Whether to create a directed graph. Defaults to False.
-            heterogeneous (bool): Whether to create a heterogeneous graph with different edge types. Defaults to False.
+            # FIXME: Implement heterogeneous graph creation
+            heterogeneous (bool): Whether to create a heterogeneous graph with
+                                  different edge types. Defaults to False. Currently broken.
 
         Returns:
             nx.Graph | nx.DiGraph: The created graph.
