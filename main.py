@@ -863,7 +863,7 @@ def get_from_oldbird(
 
     logger.info(f"Using continuation token: {continuation_token}")
 
-    YEARS = range(2022, 2025)
+    YEARS = range(2024, 2025)
     MONTHS = range(1, 13)
 
     for year in YEARS:
@@ -1035,6 +1035,27 @@ def update_dataset_cache() -> None:
     """Update the dataset cache."""
     dataset_loader = DatasetLoader(PBWarehouse())
     dataset_loader.update_cache()
+
+
+@cli.command()
+@function_logger(LOGGER_DIR=LOGGER_DIR)
+def multiple_training(trials: int = 50) -> None:
+    """Run the HateBERT training multiple times.
+    Often done to find the standard error of a statistic.
+    """
+    for trial in range(trials):
+        subprocess.run(
+            [
+                "uv",
+                "run",
+                "hatebert_training.py",
+                "--hidden_dim",
+                "24",
+                "--epochs",
+                "200",
+            ],
+            check=True,
+        )
 
 
 if __name__ == "__main__":
