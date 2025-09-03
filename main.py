@@ -1043,6 +1043,11 @@ def multiple_training(trials: int = 50) -> None:
     """Run the HateBERT training multiple times.
     Often done to find the standard error of a statistic.
     """
+    # TODO: make this like python *kwargs style
+    # >>> python script.py learning_rate=0.01 batch_size=32
+    # >> kwargs = dict(arg.split("=") for arg in sys.argv[1:])
+    # >> print(kwargs)  # {'learning_rate': '0.01', 'batch_size': '32'}
+
     for trial in range(trials):
         subprocess.run(
             [
