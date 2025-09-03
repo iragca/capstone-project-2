@@ -99,7 +99,7 @@ async def main():
     print("Adding user to the graph...")
     user_vector = gb.get_features(user.model_dump(), "user")
     graph.add_node(
-        user.user_id,
+        int(user.user_id),
         node_label=3,
         node_feature=user_vector,
         node_type="user",
@@ -117,7 +117,7 @@ async def main():
         )
 
         topk_results = results.get_top_k_similar_nodes_linked_to_user(
-            user_id=user.user_id, descending=True, label=0
+            user_id=int(user.user_id), descending=True, label=0
         )
 
         topk_results = [
