@@ -8,8 +8,32 @@ from ..utils import function_printer
 
 class Preprocessor:
     """
-    A class to preprocess text data for machine learning tasks.
+    A class for preprocessing data stored in a Polars DataFrame.
+
+    This class provides methods to clean and transform the data, including:
+    - Removing anchor tags from text columns.
+    - Categorizing and encoding the 'source' column.
+    - Applying custom preprocessing steps.
+
+    Attributes:
+        data (pl.DataFrame): The input data to be preprocessed.
+
+    Methods:
+        preprocess(categorize_source: bool = True) -> pl.DataFrame:
+            Preprocesses the data, optionally categorizing the 'source' column.
+
+        categorize_source_column() -> None:
+            Cleans and encodes the 'source' column by removing anchor tags,
+            categorizing source strings, and label encoding the results.
+
+        remove_anchor_tags(text: str) -> str:
+            Removes HTML anchor tags from the given text.
+
+        categorize_source_str(text: str) -> str:
+            Categorizes the source string, returning 'anonymized' for erased sources,
+            'unknown' for empty strings, and the lowercased text otherwise.
     """
+
 
     def __init__(self, data: pl.DataFrame):
         self.data = data
