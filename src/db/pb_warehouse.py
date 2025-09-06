@@ -11,9 +11,19 @@ from ..utils import check_type
 class PBWarehouse:
     def __init__(self, url: str = s.POCKETBASE_URL.value):
         self.client = PocketBase(url)
-        self.authenticated = self.client.admins.auth_with_password(
-            email=s.POCKETBASE_EMAIL.value, password=s.POCKETBASE_PASSWORD.value
-        )
+
+        try:
+            self.authenticated = self.client.admins.auth_with_password(
+                email=s.POCKETBASE_EMAIL.value, password=s.POCKETBASE_PASSWORD.value
+            )
+        except ClientResponseError as e:
+            err_msg = str(e)
+            if "No route to host" in err_msg:
+                self.authenticated = False
+                raise ConnectionError("Cannot connect to the PocketBase server. Is it running?")
+            else:
+                self.authenticated = False
+                raise e
 
     def get_dataset(self) -> list[Record]:
         """Fetch the dataset from the PocketBase warehouse."""
