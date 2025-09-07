@@ -995,13 +995,6 @@ def classify_data(collection: str = "tweets_v2") -> None:
 
 
 @cli.command()
-def tweety_trends() -> None:
-    """Run the Tweety script."""
-    scraper = TweetyScraper(previous_session=True)
-    asyncio.run(scraper.get_blm_trends())
-
-
-@cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def install_torch_geometric_dependencies() -> None:
     """Install necessary dependencies for PyTorch Geometric."""
