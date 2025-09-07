@@ -1,11 +1,29 @@
 format: jb-book
 root: content/introduction
 
+parts:
+  - caption: "Scraping"
+    chapters:
+      - file: content/scraping/Scrapers
+      - file: content/scraping/RapidAPI
+      - file: content/scraping/Tweety
 
-# parts:
-#   - caption: "Laboratory Tasks"
-#     chapters:
-#       - file: notebooks/1.2-Laboratory-Task-2
-#       - file: notebooks/1.3-Laboratory-Task-3
-#       - file: notebooks/1.4-Laboratory-Task-4
-#       - file: notebooks/1.5-Laboratory-Task-5
+  - caption: "Data Engineering"
+    chapters:
+      - file: content/data_engineering/Data-Engineering
+
+  - caption: "Modeling"
+    chapters:
+      - file: content/modeling/Modeling
+      - file: content/modeling/Data-Loading
+      - file: content/modeling/Preprocessing
+      - file: content/modeling/Graph-Building
+
+  - caption: "Training"
+    chapters:
+      - file: content/modeling/MLOps
+      - file: content/modeling/Training
+
+  - caption: "Inference"
+    chapters:
+      - file: content/modeling/Inference
