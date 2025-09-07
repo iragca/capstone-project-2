@@ -21,9 +21,9 @@ parts:
 
   - caption: "Training"
     chapters:
-      - file: content/modeling/MLOps
-      - file: content/modeling/Training
+      - file: content/training/MLOps
+      - file: content/training/Training
 
   - caption: "Inference"
     chapters:
-      - file: content/modeling/Inference
+      - file: content/inference/Inference
