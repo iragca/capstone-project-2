@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+_build
 
 # custom artifacts
 error_log.txt

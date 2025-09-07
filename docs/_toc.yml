@@ -1,0 +1,11 @@
+format: jb-book
+root: content/introduction
+
+
+# parts:
+#   - caption: "Laboratory Tasks"
+#     chapters:
+#       - file: notebooks/1.2-Laboratory-Task-2
+#       - file: notebooks/1.3-Laboratory-Task-3
+#       - file: notebooks/1.4-Laboratory-Task-4
+#       - file: notebooks/1.5-Laboratory-Task-5
