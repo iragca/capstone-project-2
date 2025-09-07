@@ -4,6 +4,7 @@ root: content/introduction
 parts:
   - caption: "Scraping"
     chapters:
+      - file: content/scraping/Models
       - file: content/scraping/Scrapers
       - file: content/scraping/RapidAPI
       - file: content/scraping/Tweety
