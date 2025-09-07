@@ -40,7 +40,7 @@ We are only working with [uv](https://docs.astral.sh/uv/getting-started/installa
 
 ### main.py
 
-This is mostly just a combination of multiple data engineering scripts facilitating scraping, moving data, preprocessing tasks.
+This is mostly just a combination of multiple data engineering scripts facilitating scraping, moving data, preprocessing tasks. Akin to a "command center/panel".
 It also includes helper scripts like `multiple-training` for manual grid hyperparameter gridsearch, `install-torch-geometric-dependencies` necessary
 for the libraries Pytorch Geometric and friends. This might need clean up 🧹.
 
@@ -54,20 +54,31 @@ Most important modules needed for training is found in src/data
 - Preprocessor
 - GraphBuilder
 
-
 #### MLOps
 
-To maintain a streamlined supervision of training runs, we use MLFlow,
+To maintain a streamlined supervision of training runs, we use [mlflow](https://mlflow.org/). Which allows us to view, compare and revisit past runs. The runs include data about the hyperparameters, model artifacts, and system resources used. All this data can be download in `csv` format if needed. 
+
+The only [mlflow instance](https://mlflow.gari-homelab.party/) we use is on a home server ran by one of the members to minimize cloud costs.
 
 
 ### Using MVPs
 
 ### MVP 1.0: CLI Tool
 
+This MVP showcases the core idea of how inference will work in future MVPs and the final production build.
+
+To run inference, simply run `uv run mvp.py --user <user_id>` or `uv run mvp.py --username <username>`. The results will be printed as a `list` of `tuple`'s that contain the PocketBase `Record` object alongside its score/probability, i.e `(<Record: 7a13kcka0>, 0.52019314)`. 
+
 
 ### MVP 2.0: Streamlit
 
+This MVP showcases the implementation of the core inference functionality with a basic user interface.
 
+To first run inference, we need to run the Streamlit server first by running `uv run streamlit run streamlit_mvp.py`. This requires working connection to the PocketBase database.
+
+### MVP 3.0
+
+Coming soon.
 
 ## Contributors
 
