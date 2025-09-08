@@ -27,6 +27,7 @@ parse:
     - deflist
     - colon_fence
     - smartquotes
+    - linkify
 
 html:
   use_repository_button: true

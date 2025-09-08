@@ -11,7 +11,9 @@ parts:
 
   - caption: "Data Engineering"
     chapters:
-      - file: content/data_engineering/Data-Engineering
+      - file: content/data_engineering/Database
+      - file: content/data_engineering/Scripting
+
 
   - caption: "Modeling"
     chapters:
