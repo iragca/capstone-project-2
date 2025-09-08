@@ -19,6 +19,8 @@ We also have view tables that make the data easier to supervise.
 
 ## `PBWarehouse`
 
+[`Source`](https://github.com/iragca/capstone-project-2/blob/master/src/db/pb_warehouse.py)
+
 A service wrapper around a [PocketBase](https://pocketbase.io) instance and the [PocketBase-sdk](https://github.com/vaphes/pocketbase), providing methods for ingesting and retrieving `Tweet` and `User` records. It handles authentication, record creation, updates, and queries while adding validation and logging.
 
 ```{card}
