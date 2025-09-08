@@ -10,7 +10,6 @@ Prequisites of running the app.
 - Accessing to the PocketBase with all the data
 - Project dependencies (to install, read more below in [Development](#development)
 
-
 ## How to use this repo
 
 ```
@@ -44,47 +43,11 @@ This is mostly just a combination of multiple data engineering scripts facilitat
 It also includes helper scripts like `multiple-training` for manual grid hyperparameter gridsearch, `install-torch-geometric-dependencies` necessary
 for the libraries Pytorch Geometric and friends. This might need clean up 🧹.
 
-### Training
-
-The training is done in `hatebert_training.py`
-
-Most important modules needed for training is found in src/data
-
-- DatasetLoader
-- Preprocessor
-- GraphBuilder
-
-#### MLOps
-
-To maintain a streamlined supervision of training runs, we use [mlflow](https://mlflow.org/). Which allows us to view, compare and revisit past runs. The runs include data about the hyperparameters, model artifacts, and system resources used. All this data can be download in `csv` format if needed. 
-
-The only [mlflow instance](https://mlflow.gari-homelab.party/) we use is on a home server ran by one of the members to minimize cloud costs.
-
-
-### Using MVPs
-
-### MVP 1.0: CLI Tool
-
-This MVP showcases the core idea of how inference will work in future MVPs and the final production build.
-
-To run inference, simply run `uv run mvp.py --user <user_id>` or `uv run mvp.py --username <username>`. The results will be printed as a `list` of `tuple`'s that contain the PocketBase `Record` object alongside its score/probability, i.e `(<Record: 7a13kcka0>, 0.52019314)`. 
-
-
-### MVP 2.0: Streamlit
-
-This MVP showcases the implementation of the core inference functionality with a basic user interface.
-
-To first run inference, we need to run the Streamlit server first by running `uv run streamlit run streamlit_mvp.py`. This requires working connection to the PocketBase database.
-
-### MVP 3.0
-
-Coming soon.
-
 ## Contributors
 
-| User Pic                                                                     | Name / Username                | Email                          | Role                             |
-| ---------------------------------------------------------------------------- | ------------------------------ | ------------------------------ | -------------------------------- |
-| <img src="https://avatars.githubusercontent.com/u/156993659?v=4" width="40"> | Karylle dela Cruz / [@kardcy](https://github.com/kardcy)        | -- | Data Annotation, Project Lead, Paper |
-| <img src="https://avatars.githubusercontent.com/u/187070330?v=4" width="40"> | Chris Irag / [@iragca](https://github.com/iragca)               | chrisandrei.irag@1.ustp.edu.ph | Database Admin, Developer, Paper |
-| -- | Dane Casiño           | -- | Data Annotation, Paper |
-| -- | Usher Raymond         | -- | Paper |
+| User Pic                                                                     | Name / Username                                          | Email                          | Role                                 |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------ | ------------------------------------ |
+| <img src="https://avatars.githubusercontent.com/u/156993659?v=4" width="40"> | Karylle dela Cruz / [@kardcy](https://github.com/kardcy) | --                             | Data Annotation, Project Lead, Paper |
+| <img src="https://avatars.githubusercontent.com/u/187070330?v=4" width="40"> | Chris Irag / [@iragca](https://github.com/iragca)        | chrisandrei.irag@1.ustp.edu.ph | Database Admin, Developer, Paper     |
+| --                                                                           | Dane Casiño                                              | --                             | Data Annotation, Paper               |
+| --                                                                           | Usher Raymond                                            | --                             | Paper                                |

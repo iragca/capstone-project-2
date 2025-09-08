@@ -13,6 +13,8 @@ Most important modules needed for training is found in src/data
 
 
 
-## Data Sources * Preprocessing
+## Data Sources & Preprocessing
 
-- Datasets: Located in `data/processed/` or usually taken from the PocketBase
+- Datasets: Located in `data/processed/` or usually taken from the [PocketBase](../data_engineering/Database.md)
+
+- Preprocessing: Data cleaning, tokenization, and formatting are performed in 

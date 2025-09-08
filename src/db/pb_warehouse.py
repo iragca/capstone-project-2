@@ -9,6 +9,53 @@ from ..utils import check_type
 
 
 class PBWarehouse:
+    """
+    Service wrapper for PocketBase.
+
+    Handles authentication and provides methods for ingesting and retrieving
+    Tweet and User records.
+
+    Args:
+        url (str, optional): Base URL for PocketBase. Defaults to config value.
+
+    Raises:
+        ConnectionError: If the PocketBase server cannot be reached.
+
+    Methods:
+        get_dataset() -> list[Record]:
+            Fetch all records from the "dataset" collection.
+
+        ingest_user(user: User) -> Record | None:
+            Ingest a User into the "tweet_users" collection.
+
+        ingest_single_tweet(tweet: Tweet) -> Record | None:
+            Ingest a Tweet into the "tweets_v2" collection.
+
+        ingest_tweet(tweet: dict) -> dict[str, Record]:
+            Ingest both tweet and user data from a dict.
+
+        update_has_fetched_replies(tweet_id: str) -> Record:
+            Mark a tweet as having fetched replies.
+
+        get_user_by_id(user_id: str) -> Record:
+            Fetch user by ID.
+
+        get_user_by_username(username: str, strict: bool) -> Record:
+            Fetch user by username.
+
+        get_tweet_with_no_classification(collection: str) -> Record:
+            Fetch a tweet with no classification.
+
+        get_user_with_not_fetched_tweets(less_than_k_tweets: int | None) -> Record:
+            Fetch a user with "not fetched" tweets.
+
+        does_user_exist(user_id: str | None, username: str | None, strict: bool) -> bool:
+            Check if a user exists.
+
+        get_tweet_by_id(tweet_id: str | int) -> Record:
+            Fetch tweet by ID.
+    """
+
     def __init__(self, url: str = s.POCKETBASE_URL.value):
         self.client = PocketBase(url)
 
@@ -20,7 +67,9 @@ class PBWarehouse:
             err_msg = str(e)
             if "No route to host" in err_msg:
                 self.authenticated = False
-                raise ConnectionError("Cannot connect to the PocketBase server. Is it running?")
+                raise ConnectionError(
+                    "Cannot connect to the PocketBase server. Is it running?"
+                )
             else:
                 self.authenticated = False
                 raise e
