@@ -13,6 +13,7 @@ copyright: "2025"
 sphinx:
   config:
     mathjax_path: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+    autodoc_mock_imports: ["torch", "pocketbase", "tqdm", "requests", "networkx"]
   extra_extensions:
     - sphinx.ext.autodoc
     - sphinx.ext.autosummary
