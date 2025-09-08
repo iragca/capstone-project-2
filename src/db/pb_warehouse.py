@@ -1,3 +1,5 @@
+from typing import Union
+
 from pocketbase import PocketBase
 from pocketbase.errors import ClientResponseError
 from pocketbase.models import Record
@@ -84,8 +86,8 @@ class PBWarehouse:
             return []
 
     def _ingest_record(
-        self, record: User | Tweet, model_name: str, collection_name: str
-    ) -> Record | None:
+        self, record: Union[User, Tweet], model_name: str, collection_name: str
+    ) -> Union[Record, None]:
         """Generic method to ingest a record into a PocketBase collection."""
         try:
             new_record = self.client.collection(collection_name).create(
@@ -112,12 +114,12 @@ class PBWarehouse:
             logger.error(f"Unexpected error ingesting {model_name}: {e}, {record}")
             return None
 
-    def ingest_user(self, user: User) -> Record | None:
+    def ingest_user(self, user: User) -> Union[Record, None]:
         """Ingest a single User instance into the PocketBase warehouse."""
         check_type(user, User, "user")
         return self._ingest_record(user, "user", "tweet_users")
 
-    def ingest_single_tweet(self, tweet: Tweet) -> Record | None:
+    def ingest_single_tweet(self, tweet: Tweet) -> Union[Record, None]:
         """Ingest a single Tweet instance into the PocketBase warehouse."""
         check_type(tweet, Tweet, "tweet")
         if not tweet.user_id:
