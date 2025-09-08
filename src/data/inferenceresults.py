@@ -5,41 +5,37 @@ import torch
 
 
 class InferenceResults:
-    """InferenceResults encapsulates the results
-    of a node embedding-based inference process on a graph.
-    This class provides methods to access node and edge information, retrieve nodes by index or
-    label, and compute similarity-based predictions between nodes (e.g., likelihood of connection
-    between a user and other nodes).
-        graph (nx.Graph): The input graph, typically a NetworkX Graph object.
-        node_embeddings (torch.Tensor): Node embedding matrix of shape (num_nodes, embedding_dim).
-        edge_label_index (torch.Tensor): Tensor of shape [2, num_edges] indicating edge indices.
+    """
+    Encapsulates the results of a node embedding-based inference process on a graph.
 
-    Attributes:
-        graph (nx.Graph): The underlying graph.
-        node_embeddings (torch.Tensor): Embeddings for each node.
-        edge_label_index (torch.Tensor): Edge indices for label prediction.
-        node_list (list): List of nodes with their attributes.
-        node_map (dict): Mapping from index to node (with attributes).
-        nodes_first (torch.Tensor): Embeddings of source nodes for each edge.
-        nodes_second (torch.Tensor): Embeddings of target nodes for each edge.
-        logits (torch.Tensor): Dot product logits for each edge.
-        predictions (torch.Tensor): Sigmoid probabilities for each edge.
+    This class provides methods to access node and edge information, retrieve nodes by index
+    or label, and compute similarity-based predictions between nodes.
 
-    Raises:
-        TypeError: If input types are incorrect.
-        ValueError: If input shapes or graph/embedding/edge counts are inconsistent.
+    Parameters
+    ----------
+    graph : nx.Graph
+        The input graph, typically a NetworkX Graph object.
+    node_embeddings : torch.Tensor
+        Node embedding matrix of shape (num_nodes, embedding_dim).
+    edge_label_index : torch.Tensor
+        Tensor of shape [2, num_edges] indicating edge indices.
 
-    Methods:
-        get_node_using_node_index(node_index: int):
-            Returns the node (with attributes) at the specified index in the graph.
-        get_node_index_using_node(node_id: int) -> int:
-            Returns the index of the node with the given node ID.
-        get_index_of_nodes_with_label(label: Literal[0, 1, 2, 3]) -> list[int]:
-            Returns a list of indices for nodes with the specified label.
-            Labels:
-        get_top_k_similar_nodes_linked_to_user(user_id: int, k: int) -> list[tuple[int, float]]:
-            Returns the top-k nodes of a given label most likely to be connected to the specified user,
-            as a list of (node_id, probability) tuples, sorted by probability.
+    Attributes
+    ----------
+    graph : nx.Graph
+        The underlying graph.
+    node_embeddings : torch.Tensor
+        Embeddings for each node.
+    edge_label_index : torch.Tensor
+        Edge indices for label prediction.
+    ...
+
+    Raises
+    ------
+    TypeError
+        If input types are incorrect.
+    ValueError
+        If input shapes or graph/embedding/edge counts are inconsistent.
     """
 
     def __init__(
@@ -86,17 +82,24 @@ class InferenceResults:
         """
         Get the node using its index in the graph.
 
-        Args:
-            node_index (int): The index of the node.
+        Parameters
+        ----------
+        node_index : int
+            The index of the node.
 
-        Returns:
-            tuple[int, dict]: The node ID and its attributes.
-                Example:
-                    (1277976913743503365,
-                        {'node_label': 1,
-                        'node_feature': tensor([4.8600e+03, 3.3400e+02, 2.8000e+01, 0.0000e+00]),
-                        'node_type': 'tweet'})
+        Returns
+        -------
+        tuple of (int, dict)
+            The node ID and its attributes.
+
+            Example
+            -------
+            (1277976913743503365,
+             {'node_label': 1,
+              'node_feature': tensor([4.8600e+03, 3.3400e+02, 2.8000e+01, 0.0000e+00]),
+              'node_type': 'tweet'})
         """
+
         return self.node_list[node_index]
 
     def get_node_index_using_node(self, node_id: int) -> int:

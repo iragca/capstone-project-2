@@ -30,3 +30,4 @@ parts:
   - caption: "Inference"
     chapters:
       - file: content/inference/Inference
+      - file: content/inference/MVPs
