@@ -92,12 +92,13 @@ class InferenceResults:
         tuple of (int, dict)
             The node ID and its attributes.
 
-            Example
-            -------
-            (1277976913743503365,
-             {'node_label': 1,
-              'node_feature': tensor([4.8600e+03, 3.3400e+02, 2.8000e+01, 0.0000e+00]),
-              'node_type': 'tweet'})
+        Examples
+        --------
+        >>> inferenceresults.get_node_using_node_index(0)
+        (1277976913743503365,
+            {'node_label': 1,
+            'node_feature': tensor([4.8600e+03, 3.3400e+02, 2.8000e+01, 0.0000e+00]),
+            'node_type': 'tweet'})
         """
 
         return self.node_list[node_index]
