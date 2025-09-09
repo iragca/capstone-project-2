@@ -14,10 +14,10 @@ parts:
       - file: content/data_engineering/Database
       - file: content/data_engineering/Scripting
 
-
   - caption: "Modeling"
     chapters:
-      - file: content/modeling/Modeling
+      - file: content/modeling/Data_Models
+      - file: content/modeling/Architectures
       - file: content/modeling/Data_Loading
       - file: content/modeling/Preprocessing
       - file: content/modeling/Graph_Building
