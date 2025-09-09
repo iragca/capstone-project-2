@@ -24,7 +24,56 @@ cli = Typer()
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def update_user_friends_count() -> None:
-    """Update the friends_count field for users in the PocketBase warehouse."""
+    """
+    Update the `friends_count` field for users in the PocketBase warehouse.
+
+    This function iterates over locally saved tweet JSON files in the
+    `INTERIM_DATA_DIR/twitter_api45` staging area, extracts user
+    information, and compares each user's friends count with the stored
+    value in PocketBase. If there is a mismatch, the PocketBase record is
+    updated accordingly.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Reads tweet JSON files from the staging directory.
+        - Extracts user information using `api45_user`.
+        - Updates the corresponding `tweet_users` record in PocketBase
+        when the `friends_count` differs.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    AssertionError
+        If the loaded tweet file does not contain a dictionary.
+    json.JSONDecodeError
+        If a tweet file cannot be parsed as JSON.
+    Exception
+        Catches and logs any other unexpected errors during processing.
+
+    Notes
+    -----
+    - Non-JSON files in the staging directory are skipped automatically.
+    - Users not found in PocketBase are logged and skipped.
+    - If a user's `friends_count` already matches the value in PocketBase,
+      no update is performed.
+
+    See Also
+    --------
+    get_all_users_tweets_by_oldbird : Fetches user-specific tweets.
+    get_info_of_users : Collects metadata for users.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping update-user-friends-count
+    """
     SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45")
     pb = PBWarehouse()
 
@@ -76,7 +125,58 @@ def update_user_friends_count() -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def update_user_friends():
-    """Update the friends count for users in the PocketBase warehouse."""
+    """
+    Update the `friends` count for users in the PocketBase warehouse.
+
+    This function iterates over locally saved user JSON files in the
+    `INTERIM_DATA_DIR/twitter_api45_user` staging directory, extracts the
+    `rest_id` and `friends` values, and updates the corresponding
+    `tweet_users` records in PocketBase. Existing users with a
+    nonzero `friends` count are skipped.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Reads user JSON files from the staging directory.
+        - Extracts user IDs (`rest_id`) and friend counts.
+        - Updates `tweet_users` records in PocketBase when applicable.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    AssertionError
+        If the loaded user file does not contain a dictionary.
+    json.JSONDecodeError
+        If a user file cannot be parsed as JSON.
+    ClientResponseError
+        If a PocketBase API call fails (e.g., user not found).
+    Exception
+        Logs and skips any other unexpected errors during processing.
+
+    Notes
+    -----
+    - Non-JSON files in the staging directory are skipped.
+    - Users without a `rest_id` in their JSON file are logged and skipped.
+    - If a user already has a `friends` count greater than zero in PocketBase,
+      no update is performed.
+    - Updates only the `friends` field in the `tweet_users` collection.
+
+    See Also
+    --------
+    update_user_friends_count : Similar function, but processes tweet files to update friends counts.
+    get_info_of_users : Fetches and saves metadata about users.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping update-user-friends
+    """
     pb = PBWarehouse()
     SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45_user")
 
@@ -127,7 +227,36 @@ def update_user_friends():
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def ingest_data_from_api45():
-    """Ingest data from the Twitter API45 into the PocketBase warehouse."""
+    """
+    Ingest data from the Twitter API45 into the PocketBase warehouse.
+
+    This function iterates over JSON files in the `INTERIM_DATA_DIR/twitter_api45` directory,
+    parses each tweet, and ingests it into the PocketBase collection. If a tweet contains a
+    quoted tweet, the quoted tweet is ingested as well.
+
+    Files that are not valid JSON or missing required fields are skipped with a warning.
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Reads tweets from JSON files in `INTERIM_DATA_DIR/twitter_api45`.
+        - Ingests tweets into PocketBase using `PBWarehouse.ingest_single_tweet`.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    AssertionError
+        If the loaded JSON data is not a dictionary.
+    Exception
+        If there is an error processing a tweet or quoted tweet.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping ingest-data-from-api45
+    """
     SAVE_PATH = ensure_path(INTERIM_DATA_DIR / "twitter_api45")
     pb = PBWarehouse()
 
@@ -173,7 +302,38 @@ def ingest_data_from_api45():
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def ingest_tweety_tweets() -> None:
-    """Ingest tweets from Tweety into the PocketBase warehouse."""
+    """
+    Ingest tweets from Tweety into the PocketBase warehouse.
+
+    This function reads JSON files from the `INTERIM_DATA_DIR/tweety` staging area, validates
+    each tweet, and ingests them into the `tweets_v2` collection in PocketBase. Files that are
+    not valid JSON or contain invalid data are skipped, and existing tweets are not duplicated.
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Reads tweets from JSON files in `INTERIM_DATA_DIR/tweety`.
+        - Validates the structure of each tweet.
+        - Ingests valid tweets into the PocketBase `tweets_v2` collection.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    AssertionError
+        If the JSON data is not a list or if any tweet is not a dictionary or missing the
+        required `tweet_id`.
+    ClientResponseError
+        If there is an error from PocketBase when ingesting a tweet.
+    Exception
+        For any other errors during processing.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping ingest-tweety-tweets
+    """
     pb = PBWarehouse()
     staging_area = INTERIM_DATA_DIR / "tweety"
 
@@ -217,7 +377,32 @@ def ingest_tweety_tweets() -> None:
 
 @cli.command()
 def update_has_replies_using_reply_id() -> None:
-    """Update the has_replies field for tweets."""
+    """
+    Update the `has_replies` (fetched_replies) field for tweets in the PocketBase warehouse.
+
+    This function iterates over all tweets that are replies (`in_reply_to_status_id` not NULL),
+    and marks the corresponding parent tweet's `fetched_replies` field as True if the reply exists
+    in the PocketBase `tweets_v2` collection.
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Queries tweets with non-null `in_reply_to_status_id`.
+        - Updates the parent tweet in PocketBase to indicate that it has replies.
+        - Logs warnings for missing reply records and errors during processing.
+
+    Raises
+    ------
+    Exception
+        For unexpected errors when querying or updating PocketBase records.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping update-has-replies-using-reply-id
+    """
     logger.add(PROJECT_ROOT / "reports" / "logs" / "update_has_replies.logs")
 
     pb = PBWarehouse()
@@ -252,7 +437,38 @@ def update_has_replies_using_reply_id() -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def clean_fetching_buffer() -> None:
-    """Clean the fetching buffer for users."""
+    """
+    Reset the `status` of users marked as 'fetching' in the PocketBase warehouse.
+
+    This function is intended to clear the "fetching buffer" for users in the
+    `tweet_users` collection. It updates any users currently marked as `status='fetching'`
+    back to `status='not fetched'`. A countdown is displayed before starting to allow
+    cancellation if fetching is actually in progress.
+
+    Returns
+    -------
+    None
+        Performs side effects:
+        - Iterates over users with `status='fetching'`.
+        - Updates each user's status to `not fetched`.
+        - Logs progress and any errors encountered.
+
+    Warnings
+    --------
+    Ensure that no active fetching processes are running before executing this command,
+    as this may interfere with ongoing data collection.
+
+    Raises
+    ------
+    Exception
+        For unexpected errors during querying or updating PocketBase records.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping clean-fetching-buffer
+    """
     pb = PBWarehouse()
 
     print("Make sure no one is actually fetching tweets before running this command.")
@@ -287,7 +503,39 @@ def clean_fetching_buffer() -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def reset_user_fetched_tweets() -> None:
-    """Reset the fetched_tweets field for all users."""
+    """
+    Reset the `status` of all users who have `fetched_tweets` in the PocketBase warehouse.
+
+    This function prompts the user for confirmation before iterating through the
+    `tweet_users` collection. Any user with `status='fetched'` will be updated to
+    `status='not fetched'`. A countdown is displayed before performing the reset
+    to allow cancellation.
+
+    Returns
+    -------
+    None
+        Performs side effects:
+        - Prompts the user for confirmation.
+        - Iterates over users with `status='fetched'`.
+        - Updates each user's status to `not fetched`.
+        - Logs progress, warnings, and errors.
+
+    Warnings
+    --------
+    This operation affects all users marked as fetched. Ensure no active fetching
+    processes are running when executing this command.
+
+    Raises
+    ------
+    Exception
+        For unexpected errors during querying or updating PocketBase records.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping reset-user-fetched-tweets
+    """
     pb = PBWarehouse()
 
     user_input: str = ""
@@ -343,7 +591,36 @@ def reset_user_fetched_tweets() -> None:
 
 @cli.command()
 def update_has_replies_using_has_blm() -> None:
-    """Update the has_replies field for tweets."""
+    """
+    Update the `has_replies` field for tweets that are replies to BLM-related tweets.
+
+    This function fetches all tweets from the `tweets_v2` collection where
+    `is_reply_to_blm` is `TRUE`. For each such tweet, if it references another tweet
+    via `in_reply_to_status_id`, the corresponding tweet record is updated to set
+    `fetched_replies=True`.
+
+    The function logs warnings when a reply record is not found and errors for any
+    unexpected exceptions.
+
+    Returns
+    -------
+    None
+        Performs side effects:
+        - Queries the PocketBase `tweets_v2` collection.
+        - Updates `fetched_replies` to `True` for relevant tweets.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    Exception
+        For unexpected errors while querying or updating PocketBase records.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping update-has-replies-using-has-blm
+    """
     logger.add(PROJECT_ROOT / "reports" / "logs" / "update_has_replies.logs")
 
     pb = PBWarehouse()
@@ -378,7 +655,41 @@ def update_has_replies_using_has_blm() -> None:
 
 @cli.command()
 def update_reply_links() -> None:
-    """Update the in_reply_to_status_link field for tweets."""
+    """
+    Update the `in_reply_to_status_link` field for tweets.
+
+    This function iterates over all tweets in the `tweets_v2` collection where
+    `in_reply_to_status_link` is `NULL` and `in_reply_to_status_id` is not `NULL`.
+    For each tweet, it constructs a URL linking to the original tweet based on the
+    replied user's username and the tweet ID, then updates the `in_reply_to_status_link`
+    field in PocketBase.
+
+    Warnings are logged if:
+    - The tweet already has a `in_reply_to_status_link`.
+    - The original tweet record cannot be found.
+    - The original user record cannot be found.
+    Errors are logged for any unexpected exceptions during processing.
+
+    Returns
+    -------
+    None
+        Performs side effects:
+        - Queries `tweets_v2` and `tweet_users` collections.
+        - Updates the `in_reply_to_status_link` field for relevant tweets.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    Exception
+        For unexpected errors while querying or updating PocketBase records.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping update-reply-links
+    """
+
     logger.add(PROJECT_ROOT / "reports" / "logs" / "update_reply_links.logs")
 
     pb = PBWarehouse()
@@ -438,6 +749,37 @@ def update_reply_links() -> None:
 
 @cli.command()
 def update_is_reply_to_blm() -> None:
+    """
+    Update the `is_reply_to_blm` field for tweets.
+
+    This function iterates over all tweets in the `tweets_v2` collection. For each tweet
+    that is a reply (`in_reply_to_status_id` is not `None`), it checks whether the original
+    tweet has the `has_blm_hashtag` field set to `True`. If so, it updates the current tweet's
+    `is_reply_to_blm` field to `True`.
+
+    Warnings are logged if:
+    - The original tweet (being replied to) cannot be found.
+    Errors are logged for any unexpected exceptions during processing.
+
+    Returns
+    -------
+    None
+        Performs side effects:
+        - Queries the `tweets_v2` collection.
+        - Updates the `is_reply_to_blm` field for relevant tweets.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    Exception
+        For unexpected errors while querying or updating PocketBase records.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping update-is-reply-to-blm
+    """
     logger.add(PROJECT_ROOT / "reports" / "logs" / "update_is_reply.logs")
 
     pb = PBWarehouse()
@@ -472,7 +814,41 @@ def update_is_reply_to_blm() -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def ingest_data() -> None:
-    """Ingest data from staging area to warehouse."""
+    """
+    Ingest tweets from the staging area into the PocketBase warehouse.
+
+    This function iterates over JSON files in the staging area (`INTERIM_DATA_DIR/oldbird`).
+    For each tweet file, it:
+
+    1. Loads the tweet data as a dictionary.
+    2. Validates that the dictionary contains a `tweet_id`.
+    3. Ingests retweeted or quoted tweets if present.
+    4. Ingests the main tweet into the PocketBase warehouse.
+
+    Warnings are logged if a file is not a JSON file. Errors during ingestion are logged
+    with details.
+
+    Returns
+    -------
+    None
+        Performs side effects:
+        - Reads JSON tweet files from the staging area.
+        - Ingests tweets (including retweets and quoted tweets) into the PocketBase warehouse.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    AssertionError
+        If a tweet file does not contain a dictionary or `tweet_id`.
+    Exception
+        For unexpected errors during file reading or ingestion.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping ingest-data
+    """
     pb_client = PBWarehouse()
     staging_area = INTERIM_DATA_DIR / "oldbird"
     logger.info(f"Staging area: {staging_area}")
@@ -503,7 +879,40 @@ def ingest_data() -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def classify_data(collection: str = "tweets_v2") -> None:
-    """Classify data using HateBERT."""
+    """
+    Classify tweets in the specified PocketBase collection using HateBERT.
+
+    This function retrieves tweets without a classification from the given collection,
+    processes the text through a pre-trained HateBERT model, and updates each tweet's
+    `is_hateful` field with the predicted class.
+
+    Parameters
+    ----------
+    collection : str, optional
+        The name of the PocketBase collection to classify (default is `"tweets_v2"`).
+
+    Returns
+    -------
+    None
+        Performs side effects:
+        - Fetches tweets without classification from the specified collection.
+        - Classifies each tweet as hateful or not using HateBERT.
+        - Updates the PocketBase record with the predicted class.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    ClientResponseError
+        If the PocketBase client fails to fetch or update a record.
+    Exception
+        For unexpected errors during model inference or data processing.
+
+    Examples
+    --------
+    Run as a CLI command:
+
+    >>> uv run scraping classify-data
+    """
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     pb = PBWarehouse()
