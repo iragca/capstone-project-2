@@ -107,13 +107,22 @@ class InferenceResults:
         """
         Get the index of a node in the graph by its ID.
 
-        Args:
-            graph (Graph): The graph object.
-            node_id (int): The ID of the node.
+        Parameters
+        ----------
+        node_id : int
+            The ID of the node to search for in the graph.
 
-        Returns:
-            int: The index of the node in the graph.
+        Returns
+        -------
+        int
+            The index of the node in `self.node_list`.
+
+        Raises
+        ------
+        ValueError
+            If the node with the given ID is not found.
         """
+
         for index, (node, _) in enumerate(self.node_list):
             if node == node_id:
                 return index
@@ -121,17 +130,22 @@ class InferenceResults:
     def get_index_of_nodes_with_label(self, label: Literal[0, 1, 2, 3]) -> list[int]:
         """
         Get the indices of nodes with a specific label.
-        labels:
-            0: hateful / extremist tweet
-            1: non-hateful / non-extremist / neutral tweet
-            2: offensive tweet
-            3: user
 
-        Args:
-            label (int): The label to filter nodes by.
+        Node labels are defined as:
+            0 : hateful / extremist tweet
+            1 : non-hateful / non-extremist / neutral tweet
+            2 : offensive tweet
+            3 : user
 
-        Returns:
-            list[int]: A list of indices of nodes with the specified label.
+        Parameters
+        ----------
+        label : int
+            The label to filter nodes by. Must be one of [0, 1, 2, 3].
+
+        Returns
+        -------
+        list[int]
+            A list of indices corresponding to nodes with the specified label.
         """
 
         return [
@@ -148,16 +162,30 @@ class InferenceResults:
         label: Literal[0, 1, 2, 3] = 0,
     ) -> list[tuple[int, float]]:
         """
-        Get the top-k nodes of a certain label that are most likely connected to the user.
+        Get the top-k nodes of a certain label most likely connected to a given user.
 
-        Args:
-            user_id (int): The ID of the user node.
-            k (int): Number of top similar nodes to return.
-            descending (bool): Sort high to low probabilities if True.
-            label (int): Label of candidate nodes to compare against.
+        Parameters
+        ----------
+        user_id : int
+            The ID of the user node.
+        k : int, optional
+            Number of top similar nodes to return (default is 10).
+        descending : bool, optional
+            If True, sort probabilities from high to low (default is True).
+        label : int, optional
+            Label of candidate nodes to consider (default is 0). Must be one of [0, 1, 2, 3].
 
-        Returns:
-            list[tuple[int, float]]: List of (node_id, probability) tuples.
+        Returns
+        -------
+        list of tuple of (int, float)
+            A list of `(node_id, probability)` tuples, sorted by probability.
+
+        Raises
+        ------
+        TypeError
+            If `user_id` is not an integer.
+        ValueError
+            If `k` is not a positive integer, `label` is invalid, or the user is not found.
         """
 
         if not isinstance(user_id, int):
