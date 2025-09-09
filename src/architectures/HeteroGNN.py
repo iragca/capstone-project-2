@@ -5,6 +5,49 @@ from deepsnap.hetero_gnn import HeteroConv, HeteroSAGEConv, forward_op
 
 
 class HeteroGNN(torch.nn.Module):
+    """
+    Heterogeneous Graph Neural Network (GNN) for link prediction.
+
+    This model applies two layers of heterogeneous message passing (via
+    :class:`deepsnap.hetero_gnn.HeteroConv`) with batch normalization and
+    non-linear activation. Predictions are computed as the dot product
+    between pairs of node embeddings.
+
+    Parameters
+    ----------
+    hetero : networkx.Graph
+        A heterogeneous graph object compatible with DeepSNAP, containing
+        node and edge type metadata.
+    hidden_size : int
+        Dimensionality of hidden representations for all node types.
+
+    Attributes
+    ----------
+    convs1 : HeteroConv
+        First heterogeneous convolutional layer.
+    convs2 : HeteroConv
+        Second heterogeneous convolutional layer.
+    bns1 : nn.ModuleDict
+        Batch normalization modules for the first layer, per node type.
+    bns2 : nn.ModuleDict
+        Batch normalization modules for the second layer, per node type.
+    relus1 : nn.ModuleDict
+        Activation functions (LeakyReLU) after the first layer, per node type.
+    relus2 : nn.ModuleDict
+        Activation functions (LeakyReLU) after the second layer, per node type.
+    loss_fn : torch.nn.BCEWithLogitsLoss
+        Binary cross-entropy loss with logits.
+
+    Examples
+    --------
+    >>> from deepsnap.dataset import GraphDataset
+    >>> dataset = GraphDataset("hetero-example")
+    >>> data = dataset[0]
+    >>> model = HeteroGNN(data.G, hidden_size=64)
+    >>> pred = model(data)
+    >>> loss = model.loss(pred, data.edge_label)
+    """
+
     def __init__(self, hetero, hidden_size):
         super(HeteroGNN, self).__init__()
 
@@ -30,6 +73,28 @@ class HeteroGNN(torch.nn.Module):
             self.relus2[node_type] = nn.LeakyReLU()
 
     def forward(self, data):
+        """
+        Forward pass of the heterogeneous GNN.
+
+        Parameters
+        ----------
+        data : object
+            DeepSNAP heterogeneous graph data object with attributes:
+            - ``node_feature`` : dict of {node_type: torch.Tensor}
+              Node feature matrices.
+            - ``edge_index`` : dict of {message_type: torch.LongTensor}
+              Edge indices in COO format, keyed by message type.
+            - ``edge_label_index`` : dict of {message_type: torch.LongTensor}
+              Candidate edge pairs for link prediction.
+
+        Returns
+        -------
+        dict
+            Dictionary of predictions per message type:
+            - key: message type tuple (src, relation, dst)
+            - value: torch.Tensor of shape (num_edges,)
+              Predicted logits for edges of this type.
+        """
         x = data.node_feature
         edge_index = data.edge_index
         x = self.convs1(x, edge_index)
@@ -50,6 +115,23 @@ class HeteroGNN(torch.nn.Module):
         return pred
 
     def loss(self, pred, y):
+        """
+        Compute the binary cross-entropy loss over all edge types.
+
+        Parameters
+        ----------
+        pred : dict
+            Dictionary of predictions per message type. Each value is a tensor
+            of logits for edges of that type.
+        y : dict
+            Dictionary of ground-truth binary labels per message type. Each
+            value is a tensor of the same shape as ``pred[key]``.
+
+        Returns
+        -------
+        torch.Tensor
+            Scalar loss value (sum of losses across all message types).
+        """
         loss = 0
         for key in pred:
             p = torch.sigmoid(pred[key])
@@ -58,7 +140,15 @@ class HeteroGNN(torch.nn.Module):
 
     @property
     def name(self):
-        """Returns the name of the model."""
+        """
+        str: Returns the model name, including the convolution type used.
+
+        Returns
+        -------
+        str
+            ``"HeteroGNN(GCNConv)"`` if using GCN-style layers,
+            ``"HeteroGNN(SAGEConv)"`` if using GraphSAGE layers.
+        """
         return (
             "HeteroGNN(GCNConv)"
             if isinstance(self.conv1, HeteroConv)
@@ -69,6 +159,25 @@ class HeteroGNN(torch.nn.Module):
     def generate_2convs_link_pred_layers(
         hete: nx.Graph, conv: HeteroSAGEConv, hidden_size: int
     ):
+        """
+        Generate two sets of convolutional layers for heterogeneous link prediction.
+
+        Parameters
+        ----------
+        hete : networkx.Graph
+            Heterogeneous graph with node and edge type metadata.
+        conv : class
+            Heterogeneous convolution layer class (e.g., HeteroSAGEConv).
+        hidden_size : int
+            Dimensionality of hidden representations.
+
+        Returns
+        -------
+        tuple of dict
+            Two dictionaries of convolutional layers keyed by message type:
+            - convs1: input_dim → hidden_size
+            - convs2: hidden_size → hidden_size
+        """
         convs1 = {}
         convs2 = {}
         for message_type in hete.message_types:
