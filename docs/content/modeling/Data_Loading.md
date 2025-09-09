@@ -1,8 +1,6 @@
 # Dataset Loader
 
-[`Source`](https://github.com/iragca/capstone-project-2/blob/master/src/data/datasetloader.py)
-
-This is a utility class for loading, caching, and parsing datasets from a PocketBase warehouse.
+This is the first preliminary step in training. This is a utility class for loading, caching, and parsing datasets from a PocketBase warehouse.
 
 
 ```{eval-rst}
