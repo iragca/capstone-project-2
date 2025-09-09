@@ -62,7 +62,56 @@ def tweety_login_once() -> None:
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR, level="WARNING")
 def get_info_of_users():
-    """Get the information of users in the PocketBase warehouse."""
+    """
+    Fetch and store Twitter user information for users in the PocketBase warehouse.
+
+    This command queries the `users_tweets_status` collection in the PocketBase
+    database for users with `friends = 0`. For each user, it retrieves detailed
+    profile information using the RapidAPI Twitter API v4.5, and saves the results
+    as JSON files in the interim data directory.
+
+    The function logs progress, warnings for missing users, and success messages
+    for retrieved users.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Fetches user data from RapidAPI.
+        - Saves results to the local filesystem in JSON format.
+        - Logs progress and errors.
+
+    Raises
+    ------
+    requests.exceptions.RequestException
+        If there is a network or API request failure.
+    ValueError
+        If the API response is malformed or missing required fields.
+    OSError
+        If writing the JSON file to disk fails.
+
+    Notes
+    -----
+    - Data is stored under ``INTERIM_DATA_DIR/twitter_api45_user``.
+    - Each user record is saved as ``<user_id>.json``.
+    - Uses tqdm for progress visualization.
+
+    See Also
+    --------
+    RapidApiScraper.get_user_info_by_twitter_api45 : Retrieves a single user's info.
+    PBWarehouse : Provides access to PocketBase collections.
+
+    Examples
+    --------
+    Run the command via CLI:
+
+    >>> get_info_of_users()
+    Fetching user info: 100%|██████████| 25/25 [00:03<00:00,  7.90user/s]
+    """
     pb = PBWarehouse()
     scraper = RapidApiScraper(api_key=Settings.X_RAPIDAPI_KEY.value)
     SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45_user")
@@ -92,13 +141,69 @@ def get_user_tweets_v2(
     less_than_k_tweets: int | None = None,
     max_pages: int | None = None,
 ) -> None:
-    """Get tweets for users using the RapidApi Twitter API45.
-
-    Args:
-        max_retries (int): Maximum number of retries for fetching tweets.
-                           Useful when the API thinks there are no more tweets
-                           for a user, but there are actually more tweets available.
     """
+    Fetch tweets for users stored in the PocketBase warehouse using the
+    RapidAPI Twitter API v4.5.
+
+    The function continuously queries PocketBase for users whose tweets
+    have not been fetched yet (or have fewer than a given number of tweets),
+    retrieves their tweets through the RapidAPI scraper, saves the results
+    to disk as JSON files, and updates the user's fetch status in PocketBase.
+
+    Parameters
+    ----------
+    max_retries : int, optional, default=5
+        Maximum number of retries when fetching tweets for a user. Useful when
+        the API prematurely reports no more tweets but additional tweets exist.
+    less_than_k_tweets : int or None, optional
+        If provided, only fetch tweets for users with fewer than `k` tweets.
+    max_pages : int or None, optional
+        Maximum number of pages to fetch from the API. If None, fetches all
+        available pages.
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Fetches tweets from RapidAPI.
+        - Saves tweets to JSON files in the interim data directory.
+        - Updates user records in PocketBase.
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    aiohttp.ClientResponseError
+        If the RapidAPI request fails with an HTTP error.
+    OSError
+        If saving tweets to disk fails.
+    Exception
+        Catches and logs all other unexpected errors during execution.
+
+    Notes
+    -----
+    - Tweet data is saved in ``INTERIM_DATA_DIR/twitter_api45`` with filenames
+      corresponding to the tweet IDs (``<tweet_id>.json``).
+    - Each user record status in PocketBase is updated as:
+        * ``fetching`` while being processed.
+        * ``fetched`` if tweets were retrieved or determined to be sensitive.
+        * ``not fetched`` if an error occurs.
+
+    See Also
+    --------
+    RapidApiScraper.get_users_tweets_by_twitter_api45 : Retrieves tweets for a single user.
+    PBWarehouse.get_user_with_not_fetched_tweets : Returns the next user to process.
+
+    Examples
+    --------
+    Run the command via CLI with default options:
+
+    >>> get_user_tweets_v2()
+
+    Fetch tweets for users with fewer than 100 tweets:
+
+    >>> get_user_tweets_v2(less_than_k_tweets=100)
+    """
+
     scraper = RapidApiScraper(api_key=Settings.X_RAPIDAPI_KEY.value)
     pb = PBWarehouse()
     SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "twitter_api45")
@@ -172,6 +277,65 @@ def get_user_tweets_v2(
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def get_all_users_tweets_by_oldbird(max_requests: int | None = None) -> None:
+    """
+    Fetch all tweets for users in the OldBird dataset and store them locally.
+
+    This function retrieves tweets from the PocketBase collection ``tweets_v2``
+    within a specific date range and filters for tweets marked as replies to BLM.
+    For each user associated with these tweets, it checks their fetch status
+    and retrieves additional tweets via the OldBird API, saving the results to
+    disk as JSON files. User statuses in PocketBase are updated accordingly.
+
+    Parameters
+    ----------
+    max_requests : int or None, optional
+        Maximum number of requests to make to the API for each user.
+        If None, the number of requests is derived from the user's
+        total tweet count and the page size (20 tweets per page).
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Fetches tweets from OldBird API.
+        - Saves tweets to JSON files in the interim data directory.
+        - Updates user records in PocketBase.
+        - Logs progress, skips, and errors.
+
+    Raises
+    ------
+    OSError
+        If saving tweets to disk fails.
+    Exception
+        If an unexpected error occurs while processing users or saving data.
+
+    Notes
+    -----
+    - Data is saved in ``INTERIM_DATA_DIR/oldbird`` with filenames
+      corresponding to tweet IDs (``<tweet_id>.json``).
+    - Users with more than 5000 tweets are skipped, with a note to
+      fetch their tweets using Tweety instead.
+    - User statuses in PocketBase are updated as:
+        * ``fetching`` while tweets are being retrieved.
+        * ``fetched`` once tweets are successfully stored.
+        * unchanged if skipped.
+
+    See Also
+    --------
+    get_user_tweets : Helper function to fetch tweets for a single user.
+    PBWarehouse.get_user_by_id : Retrieves user records from PocketBase.
+
+    Examples
+    --------
+    Run with default options:
+
+    >>> get_all_users_tweets_by_oldbird()
+
+    Limit the maximum requests per user to 50:
+
+    >>> get_all_users_tweets_by_oldbird(max_requests=50)
+    """
+
     pb = PBWarehouse()
     SAVE_DIR = ensure_path(INTERIM_DATA_DIR / "oldbird")
     TWEETS_PER_PAGE = 20
@@ -254,6 +418,69 @@ def get_all_users_tweets_by_tweety(
     wait_time: int = 30,
     previous_session: bool | None = None,
 ) -> None:
+    """
+    Fetch all tweets for users using the Tweety scraper and store them locally.
+
+    This function retrieves users from the PocketBase warehouse whose tweets
+    have not yet been fetched. It then uses the Tweety scraper to download
+    their tweets, saving them into JSON files in the staging directory. User
+    statuses in PocketBase are updated throughout the process.
+
+    Parameters
+    ----------
+    max_pages : int or None, optional
+        Maximum number of pages of tweets to fetch per user. If None,
+        the number of pages is computed based on the user's total tweet
+        count and the page size (20 tweets per page).
+    wait_time : int, default=30
+        Number of seconds to wait between page requests to avoid rate
+        limits or throttling by Twitter.
+    previous_session : bool or None, optional
+        Whether to reuse a previous Tweety session. If None, the function
+        checks for the existence of a saved session file
+        (``session.tw_session`` in the project root).
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Fetches tweets using Tweety.
+        - Saves tweets into JSON files under ``INTERIM_DATA_DIR/tweety``.
+        - Updates user records in PocketBase.
+        - Logs progress and errors.
+
+    Raises
+    ------
+    ClientResponseError
+        If a request to PocketBase fails or a user record cannot be updated.
+    Exception
+        If any unexpected error occurs during tweet retrieval or saving.
+
+    Notes
+    -----
+    - Tweets are saved in JSON files named after the user's username
+      (``<username>.json``).
+    - User statuses in PocketBase are updated as:
+        * ``fetching`` while tweets are being downloaded.
+        * ``fetched`` once tweets are successfully stored.
+        * ``not fetched`` if no tweets were found or an error occurred.
+    - If a user has sensitive tweets, they may be skipped.
+
+    See Also
+    --------
+    TweetyScraper.get_tweets_of_user : Internal scraper method for fetching tweets.
+    get_all_users_tweets_by_oldbird : Alternative tweet collection using OldBird.
+
+    Examples
+    --------
+    Run with default options:
+
+    >>> get_all_users_tweets_by_tweety()
+
+    Limit to 10 pages of tweets per user and reduce wait time:
+
+    >>> get_all_users_tweets_by_tweety(max_pages=10, wait_time=10)
+    """
     pb = PBWarehouse()
     scraper = TweetyScraper(
         previous_session=previous_session
@@ -336,7 +563,54 @@ def get_all_users_tweets_by_tweety(
 
 @cli.command()
 def get_replies() -> None:
-    """Get replies to tweets from the Oldbird API."""
+    """
+    Fetch replies to tweets from the Oldbird API and update the PocketBase warehouse.
+
+    This function retrieves tweets from PocketBase that meet specific criteria
+    (tweets with replies, containing BLM hashtags, within a given date range,
+    and not yet marked as having fetched replies). It then fetches replies for
+    those tweets using the Oldbird API and updates the corresponding records
+    in PocketBase.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Fetches replies from the Oldbird API.
+        - Saves replies in the staging area under ``INTERIM_DATA_DIR/oldbird``.
+        - Updates PocketBase records to mark replies as fetched.
+        - Logs progress, errors, and completion status.
+
+    Raises
+    ------
+    Exception
+        If updating a tweet record in PocketBase fails.
+
+    Notes
+    -----
+    - Only tweets that satisfy the following criteria are processed:
+        * ``reply_count > 0``
+        * ``has_blm_hashtag = TRUE``
+        * ``creation_date`` between 2020-03-26 and 2020-07-24
+        * ``fetched_replies = FALSE``
+    - Replies are saved locally in the ``oldbird`` staging directory.
+    - Each processed tweet is marked in PocketBase to prevent duplicate fetching.
+
+    See Also
+    --------
+    get_all_users_tweets_by_oldbird : Function for fetching user tweets via Oldbird.
+    get_all_users_tweets_by_tweety : Function for fetching tweets via Tweety.
+
+    Examples
+    --------
+    Run with default options:
+
+    >>> get_replies()
+    """
     logger.add(PROJECT_ROOT / "reports" / "logs" / "get_replies.logs")
     logger.info("Starting to fetch replies from Oldbird API...")
 
@@ -383,7 +657,65 @@ def get_from_oldbird(
         None, "--continuation-token", "-c", help="Optional continuation token"
     ),
 ):
-    """Grab tweets from the Oldbird API and save them to a staging area."""
+    """
+    Fetch tweets from the Oldbird API using RapidAPI and save them to a staging area.
+
+    This function iterates over months and days within a defined year range,
+    constructs queries with specific filters, and retrieves tweets from the
+    Oldbird API via RapidAPI. Tweets are saved as individual JSON files in a
+    staging directory, and continuation tokens are managed for paginated requests.
+
+    Parameters
+    ----------
+    num_requests : int, optional
+        Maximum number of requests to make per day (default is 100).
+    continuation_token : str, optional
+        A continuation token used to resume fetching tweets from a specific point.
+        If not provided, the default from settings is used.
+
+    Returns
+    -------
+    None
+        The function performs side effects:
+        - Fetches tweets and saves them as JSON files under `INTERIM_DATA_DIR/oldbird`.
+        - Writes the latest continuation token to a file (`continuation_token.txt`).
+        - Logs progress, warnings, and errors.
+
+    Raises
+    ------
+    requests.RequestException
+        If an HTTP request to the API fails.
+    ValueError
+        If the API response does not contain expected fields.
+
+    Notes
+    -----
+    - Currently configured to fetch tweets for years 2024–2024 (inclusive).
+    - Each day's tweets are fetched separately with pagination.
+    - The continuation token is updated after each request and persisted
+      for subsequent runs.
+    - Results are rate-limited by `num_requests`.
+
+    See Also
+    --------
+    get_all_users_tweets_by_oldbird : Fetch user-specific tweets from Oldbird.
+    get_replies : Fetch replies for previously collected tweets.
+
+    Examples
+    --------
+    Run with defaults:
+
+    >>> get_from_oldbird()
+
+    Run with custom number of requests:
+
+    >>> get_from_oldbird(num_requests=50)
+
+    Resume with a continuation token:
+
+    >>> get_from_oldbird(continuation_token="abcd1234")
+    """
+
     logger.add(PROJECT_ROOT / "reports" / "logs" / "oldbird.logs")
     logger.info("Starting to fetch tweets from Oldbird API...")
     staging = INTERIM_DATA_DIR / "oldbird"
