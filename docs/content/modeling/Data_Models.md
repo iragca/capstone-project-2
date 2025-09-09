@@ -1,6 +1,6 @@
 # Data Models
 
-To begin modeling, we encapsulate the features of each node types ({ref}`tweet` and {ref}`user`) for use in training as a `Features` class.
+Before doing modeling, we encapsulate the features of each node types ({ref}`tweet` and {ref}`user`) for use in training as a `Features` class.
 
 
 ```{eval-rst}
