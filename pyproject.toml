@@ -50,10 +50,13 @@ dependencies = [
     "ucimlrepo>=0.0.7",
 ]
 
+
+[project.scripts]
+scraping = "src.scripts.scraping:cli"
+de = "src.scripts.data_engineering:cli"
+
 [dependency-groups]
-dev = [
-    "src",
-]
+dev = ["src", "scripts"]
 
 [tool.uv.sources]
 src = { workspace = true }
