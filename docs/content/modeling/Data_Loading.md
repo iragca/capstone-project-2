@@ -1,4 +1,4 @@
-# DatasetLoader
+# Dataset Loader
 
 [`Source`](https://github.com/iragca/capstone-project-2/blob/master/src/data/datasetloader.py)
 
