@@ -27,7 +27,34 @@ cli = Typer()
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
 def tweety_login_once() -> None:
-    """Log in to Twitter once. To generate your session token file."""
+    """
+    Log in to Twitter once to generate a session token file.
+
+    This command initializes a TweetyScraper instance without using a previous
+    session and runs the login process asynchronously. It is intended to be run
+    once to generate and store the session token locally for reuse in future
+    scraping tasks.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        This function is executed for its side effect of creating a session token
+        file. It does not return a value.
+
+    Notes
+    -----
+    The session token file will be saved in the configured location for
+    authentication reuse. Running this command again will overwrite the
+    existing session token.
+
+    See Also
+    --------
+    TweetyScraper.login : Method used internally to perform the login.
+    """
     scraper = TweetyScraper(previous_session=False)
     asyncio.run(scraper.login())
 
