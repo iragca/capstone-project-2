@@ -43,6 +43,3 @@ The Staging database is just a folder on the desktop, found on `data/interim` wh
 ```{eval-rst}
 .. autofunction:: src.scripts.data_engineering.ingest_data
 ```
-```{eval-rst}
-.. autofunction:: src.scripts.data_engineering.classify_data
-```
