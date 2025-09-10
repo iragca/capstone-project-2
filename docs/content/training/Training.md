@@ -12,7 +12,11 @@ We use [HateXplain](https://huggingface.co/Hate-speech-CNERG/bert-base-uncased-h
 uv run main.py classify-data
 ```
 
-TODO: Add a excalidraw viz for this
+![classification sequence diagram](../images/classify_data.png)
+
+When classifying, we fetch a single record from the database that isn't classified as one of the 3 classes, classify the record, then update the corresponding record in the database.
+
+This process ends when are no record that is not classified or is forcefully stopped by the user.
 
 ## Script
 
