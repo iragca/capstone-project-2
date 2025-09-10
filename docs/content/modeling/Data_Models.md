@@ -4,7 +4,7 @@ Before doing modeling, we encapsulate the features of each node types ({ref}`twe
 
 
 ```{eval-rst}
-.. autoclass:: src.models.features.Features
+.. autoclass:: src.models.Features
     :members:
     :undoc-members:
     :show-inheritance:
@@ -19,14 +19,14 @@ Before doing modeling, we encapsulate the features of each node types ({ref}`twe
 
 
 ```{eval-rst}
-.. autoclass:: src.models.customgraph.Graph
+.. autoclass:: src.models.Graph
     :members:
     :undoc-members:
     :show-inheritance:
 ```
 
 ```{eval-rst}
-.. autoclass:: src.models.customgraph.DiGraph
+.. autoclass:: src.models.DiGraph
     :members:
     :undoc-members:
     :show-inheritance:

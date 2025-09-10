@@ -1,7 +1,7 @@
 # Graph Builder
 
 
-This is the third preliminary step for training. This is where we build our graph and specify graph properties such as
+This is the fourth preliminary step for training. This is where we build our graph and specify graph properties such as
 
 - whether the graph is heterogenous / homogenous
 - node types
