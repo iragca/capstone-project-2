@@ -6,7 +6,7 @@ The instance we mainly use is self-hosted and can be found on https://capstone.g
 
 ## Tables
 
-We have two main tables for both {ref}`tweet` and {ref}`user` data named `tweets_v2` respectively `tweet_users`.
+We have two main tables for both {ref}`tweet` and {ref}`user` data named `tweets_v2` and `tweet_users` respectively.
 
 We also have view tables that make the data easier to supervise.
 

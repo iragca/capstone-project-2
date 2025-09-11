@@ -18,6 +18,7 @@ parts:
     chapters:
       - file: content/modeling/Data_Models
       - file: content/modeling/Architectures
+      - file: content/modeling/Classifying
       - file: content/modeling/Data_Loading
       - file: content/modeling/Preprocessing
       - file: content/modeling/Graph_Building

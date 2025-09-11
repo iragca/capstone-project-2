@@ -10,7 +10,7 @@ To start working with this project repo make sure to do the steps specified in t
 
 ### Standalone Installer
 
-Run this in your terminal, or Powershell Prompt if on Windows.
+Run this in your terminal, or Powershell Prompt if on Windows. You can do so by using the standalone installer or by using pip.
 
 `````{tab-set}
 ````{tab-item} macOS and Linux

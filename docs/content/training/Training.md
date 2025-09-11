@@ -1,24 +1,4 @@
-# Training
-
-As the first preliminary step to training, we classify the tweet data into 3 categories based on the text.
-
-- 0: Extremist
-- 1: Normal
-- 2: Offensive
-
-We use [HateXplain](https://huggingface.co/Hate-speech-CNERG/bert-base-uncased-hatexplain) to classify the data. This is done in a script in the [`main.py`] file. To classify data simply run:
-
-```bash
-uv run main.py classify-data
-```
-
-![classification sequence diagram](../images/classify_data.png)
-
-When classifying, we fetch a single record from the database (dataset collection) that isn't classified as one of the 3 classes, classify the record, then update the corresponding record in the database.
-
-This process ends when there are no more records that is not classified or is forcefully stopped by the user.
-
-## Script
+# Training Script
 
 The training is done in [`model_training.py`](https://github.com/iragca/capstone-project-2/blob/master/model_training.py).
 
@@ -28,7 +8,7 @@ The three main classes we need are:
 - [`Preprocessor`](../modeling//Preprocessing.md): Preprocessing the data
 - [`GraphBuilder`](../modeling/Graph_Building.md): Builds a graph using the data as input.
 
-### Arguments
+## Arguments
 
 These arguments are available for configuration as decided by the user.
 
@@ -45,7 +25,7 @@ These arguments are available for configuration as decided by the user.
 | `--save-model`    | `flag`  | `False`                         | If set, save the best model after training.                     |
 | `--graphsage`     | `flag`  | `False`                         | If set, use GraphSAGE convolutional layers instead of GCN.      |
 
-### Choosing features to use
+## Choosing features to use
 
 To choose features, simply add / comment out (remove) the name of the column in the corresponding list as input to the {class}`src.models.Features` class.
 
