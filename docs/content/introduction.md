@@ -43,6 +43,6 @@ uv sync
 uv run main.py install-torch-geometric-dependencies
 ```
 
-`uv sync` installs project dependencies as specified in the `pyproject.toml`.
+`uv sync` installs project dependencies as specified in the [`pyproject.toml`](https://github.com/iragca/capstone-project-2/blob/master/pyproject.toml).
 
 The second line installs [PyTorch Geoemetric](https://pytorch-geometric.readthedocs.io/en/latest/) dependencies, `torch-sparse` and `torch-scatter`.
