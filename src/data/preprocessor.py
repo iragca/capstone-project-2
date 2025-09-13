@@ -3,7 +3,7 @@ import re
 import polars as pl
 from sklearn.preprocessing import LabelEncoder
 
-from ..utils import function_printer
+from ..utils import deprecated, function_printer
 
 
 class Preprocessor:
@@ -49,10 +49,36 @@ class Preprocessor:
         """
         self.data = data
 
+    def __call__(self, categorize_source: bool = True) -> pl.DataFrame:
+        """
+        Preprocess the dataset.
+
+        This method applies various preprocessing steps to the dataset. Currently, it optionally
+        categorizes and encodes the 'source' column.
+
+        Parameters
+        ----------
+        categorize_source : bool, optional
+            Whether to apply the 'source' column categorization and encoding (default is True).
+
+        Returns
+        -------
+        pl.DataFrame
+            The preprocessed dataset.
+        """
+
+        if categorize_source:
+            self.categorize_source_column()
+
+        return self.data
+
+    @deprecated(
+        "Please call (__call__) the Preprocessor instance after instantiation instead."
+    )
     @function_printer("Preprocessing data")
     def preprocess(self, categorize_source: bool = True) -> pl.DataFrame:
         """
-        Preprocess the dataset.
+        Deprecated. Preprocess the dataset.
 
         This method applies various preprocessing steps to the dataset. Currently, it optionally
         categorizes and encodes the 'source' column.
