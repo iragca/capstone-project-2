@@ -6,7 +6,7 @@ As the first preliminary step to training, we classify the tweet data into 3 cat
 - 1: Normal
 - 2: Offensive
 
-We use [HateXplain](https://huggingface.co/Hate-speech-CNERG/bert-base-uncased-hatexplain) to classify the data. This is done in a script in the [`main.py`](https://github.com/iragca/capstone-project-2/blob/master/main.py) file. To classify data simply run:
+We use [HateXplain](https://huggingface.co/Hate-speech-CNERG/bert-base-uncased-hatexplain) to classify the data. This is done in a script in the [`main.py`](https://github.com/iragca/capstone-project-2/blob/master/main.py#L21-L102) file. To classify data simply run:
 
 ```bash
 uv run main.py classify-data
