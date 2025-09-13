@@ -7,6 +7,7 @@ from .get_tweets_replies import get_tweet_replies
 from .get_user_tweets import get_user_tweets
 from .greetings import greetings
 from .inline_print import inline_print
+from .warnings import deprecated
 
 __all__ = [
     "check_env_variable",
@@ -18,4 +19,5 @@ __all__ = [
     "function_printer",
     "inline_print",
     "check_type",
+    "deprecated",
 ]
