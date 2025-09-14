@@ -78,9 +78,19 @@ class InferenceRequest(BaseModel):
         ..., example="elonmusk", description="Twitter handle of the user"
     )
     user_id: Optional[str] = Field(
-        None, example="123456", description="Twitter ID of the user"
+        None, example="44196397", description="Twitter ID of the user"
     )
     options: Optional[InferenceOptions] = InferenceOptions()
+
+
+class Result(BaseModel):
+    node: Tweet
+    score: float
+
+
+class Response(BaseModel):
+    message: str
+    data: Optional[list[Result]] = None
 
 
 @app.get("/")
@@ -88,7 +98,7 @@ def read_root():
     return {"message": "Welcome to the MVP3 Backend!"}
 
 
-@app.post("/inference")
+@app.post("/inference", response_model=Response)
 def inference(request: InferenceRequest):
     x_handle = request.username
     x_user_id = request.user_id
@@ -163,7 +173,10 @@ def inference(request: InferenceRequest):
         )
 
         topk_results = [
-            (Tweet(**pb.get_tweet_by_id(node_id).__dict__), probability)
+            Result(
+                node=Tweet(**pb.get_tweet_by_id(node_id).__dict__),
+                score=probability,
+            )
             for node_id, probability in topk_results
         ]
 
