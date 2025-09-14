@@ -5,7 +5,7 @@ import polars as pl
 import torch
 from deepsnap.dataset import GraphDataset
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.architectures import HomoGNN
 from src.config import PROJECT_ROOT
@@ -65,13 +65,21 @@ graph: Graph = gb.create_graph()
 
 
 class InferenceOptions(BaseModel):
-    top_k: Optional[int] = 10
-    strict_matching: Optional[bool] = False
+    top_k: Optional[int] = Field(
+        10, description="Number of top similar tweets to return", minimum=1, maximum=50
+    )
+    strict_matching: Optional[bool] = Field(
+        False, description="Whether to use strict matching for user lookup"
+    )
 
 
 class InferenceRequest(BaseModel):
-    username: str
-    user_id: Optional[str] = None
+    username: str = Field(
+        ..., example="elonmusk", description="Twitter handle of the user"
+    )
+    user_id: Optional[str] = Field(
+        None, example="123456", description="Twitter ID of the user"
+    )
     options: Optional[InferenceOptions] = InferenceOptions()
 
 
@@ -158,7 +166,6 @@ def inference(request: InferenceRequest):
             (Tweet(**pb.get_tweet_by_id(node_id).__dict__), probability)
             for node_id, probability in topk_results
         ]
-
 
     return {"message": "Inference request received", "data": topk_results}
 
