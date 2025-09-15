@@ -75,10 +75,10 @@ class InferenceOptions(BaseModel):
 
 class InferenceRequest(BaseModel):
     username: str = Field(
-        ..., example="elonmusk", description="Twitter handle of the user"
+        ..., example="elonmusk", description="Twitter handle of the user", min_length=1
     )
     user_id: Optional[str] = Field(
-        None, example="44196397", description="Twitter ID of the user"
+        None, example="44196397", description="Twitter ID of the user", min_length=1
     )
     options: Optional[InferenceOptions] = InferenceOptions()
 
@@ -123,28 +123,19 @@ def inference(request: InferenceRequest):
         user = User(**user_record.__dict__)
 
     else:
-        if x_user_id is not None:
-            return HTTPException(
-                status_code=404, detail="User ID not found in the database."
-            )
-
-        if x_handle is not None:
-            return HTTPException(
-                status_code=404, detail="User handle not found in the database."
-            )
-
         async def fetch_user_info():
             user: User = await scraper.get_user_info(
                 int(x_user_id) if x_user_id else None, x_handle
             )
-            if user is None:
-                return HTTPException(
-                    status_code=404,
-                    detail="User not found. Please check the handle or user ID.",
-                )
             return user
 
         user = run(fetch_user_info())
+
+        if user is None:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found. Please check the handle or user ID.",
+            )
 
         pb.ingest_user(user)
 
