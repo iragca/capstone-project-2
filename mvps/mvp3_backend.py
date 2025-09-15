@@ -69,7 +69,7 @@ class InferenceOptions(BaseModel):
         10, description="Number of top similar tweets to return", minimum=1, maximum=50
     )
     strict_matching: Optional[bool] = Field(
-        False, description="Whether to use strict matching for user lookup"
+        True, description="Whether to use strict matching for user lookup"
     )
 
 
