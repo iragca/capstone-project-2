@@ -116,7 +116,13 @@ class TweetyScraper:
             if user_info is None:
                 return None
 
-            return self.process_tweety_user(user_info)
+            processed_user = self.process_tweety_user(user_info)
+
+            if processed_user.username != username and username is not None:
+                raise UserNotFound(
+                    f"Username mismatch: expected {username}, got {processed_user.username}"
+                )
+            return processed_user
         except UserNotFound:
             return None
         except Exception as e:
