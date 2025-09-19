@@ -123,6 +123,7 @@ def inference(request: InferenceRequest):
         user = User(**user_record.__dict__)
 
     else:
+
         async def fetch_user_info():
             user: User = await scraper.get_user_info(
                 int(x_user_id) if x_user_id else None, x_handle
@@ -163,13 +164,12 @@ def inference(request: InferenceRequest):
             user_id=int(user.user_id), descending=descending, label=0, k=top_k
         )
 
-        topk_results = [
-            Result(
-                node=Tweet(**pb.get_tweet_by_id(node_id).__dict__),
-                score=probability,
-            )
-            for node_id, probability in topk_results
-        ]
+        topk_results = []
+        for node_id, probability in topk_results:
+            tweet = Tweet(**pb.get_tweet_by_id(node_id).__dict__)
+            tweet.user_id = User(**pb.get_user_by_id(tweet.user_id).__dict__)
+
+            topk_results.append(Result(node=tweet, score=probability))
 
     return {"message": "Inference request received", "data": topk_results}
 
