@@ -164,14 +164,14 @@ def inference(request: InferenceRequest):
             user_id=int(user.user_id), descending=descending, label=0, k=top_k
         )
 
-        topk_results = []
+        return_data = []
         for node_id, probability in topk_results:
             tweet = Tweet(**pb.get_tweet_by_id(node_id).__dict__)
             tweet.user_id = User(**pb.get_user_by_id(tweet.user_id).__dict__)
 
-            topk_results.append(Result(node=tweet, score=probability))
+            return_data.append(Result(node=tweet, score=probability))
 
-    return {"message": "Inference request received", "data": topk_results}
+    return {"message": "Inference request received", "data": return_data}
 
 
 @app.get("/health")
