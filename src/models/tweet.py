@@ -4,6 +4,8 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel
 
+from .user import User
+
 
 class Tweet(BaseModel):
     """
@@ -41,7 +43,7 @@ class Tweet(BaseModel):
     tweet_id: str
     text: str
     status_link: str
-    user_id: str
+    user_id: str | User
     is_extremist: Optional[bool] = False
     is_annotated: Optional[bool] = False
     in_reply_to_status_link: Optional[str] = None
