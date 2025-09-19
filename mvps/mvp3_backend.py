@@ -71,6 +71,9 @@ class InferenceOptions(BaseModel):
     strict_matching: Optional[bool] = Field(
         True, description="Whether to use strict matching for user lookup"
     )
+    descending: bool = Field(
+        True, description="Whether to sort results in descending order of similarity"
+    )
 
 
 class InferenceRequest(BaseModel):
@@ -108,7 +111,7 @@ def inference(request: InferenceRequest):
         if request.options and request.options.strict_matching
         else False
     )
-    descending = True  # Always sort in descending order for API
+    descending = request.options.descending if request.options else True
 
     user_exists = pb.does_user_exist(
         user_id=x_user_id, username=x_handle, strict=strict_matching
