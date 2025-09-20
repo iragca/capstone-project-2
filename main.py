@@ -125,13 +125,25 @@ def grid_search(script: str = "hatebert") -> None:
 
 @cli.command()
 @function_logger(LOGGER_DIR=LOGGER_DIR)
-def install_torch_geometric_dependencies() -> None:
+def install_torch_geometric_dependencies(pip: bool = False) -> None:
     """Install necessary dependencies for PyTorch Geometric."""
 
     torch_version = str(torch.__version__)
     scatter_src = f"https://pytorch-geometric.com/whl/torch-{torch_version}.html"
     sparse_src = f"https://pytorch-geometric.com/whl/torch-{torch_version}.html"
 
+    if pip:
+        logger.info("Installing via pip.")
+        subprocess.run(
+            ["pip", "install", "torch-scatter", "-f", scatter_src],
+            check=True,
+        )
+        subprocess.run(
+            ["pip", "install", "torch-sparse", "-f", sparse_src],
+            check=True,
+        )
+        return
+    
     subprocess.run(
         ["uv", "pip", "install", "torch-scatter", "-f", scatter_src],
         check=True,
