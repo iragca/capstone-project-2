@@ -1,1 +1,1 @@
-fastapi run mvps/mvp3_backend.py --host 0.0.0.0 --port $PORT
+web: fastapi run mvps/mvp3_backend.py --host 0.0.0.0 --port $PORT
