@@ -96,6 +96,7 @@ class InferenceResult(BaseModel):
 class Response(BaseModel):
     message: str
     data: Optional[Any] = None
+    user: Optional[User] = None
 
 
 @app.get("/")
@@ -176,7 +177,7 @@ def inference(request: InferenceRequest):
 
             return_data.append(InferenceResult(node=tweet, score=probability))
 
-    return {"message": "Inference request received", "data": return_data}
+    return {"message": "Inference request received", "data": return_data, "user": user}
 
 
 @app.get("/user/{username}", response_model=Response)
