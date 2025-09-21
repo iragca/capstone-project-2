@@ -17,7 +17,7 @@ To use these scripts, you run `uv run scraping <command_name> <args/kwargs>`. Wh
 **Example**
 ^^^
 
-Given a script:
+Given a script named `scraping.py`:
 
 ```python
 def lets_go(args1, args2) -> ...:

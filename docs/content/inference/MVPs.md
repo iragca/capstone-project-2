@@ -22,6 +22,11 @@ This MVP is the final iteration of MVPs. It contains the study details, author i
 
 The website can be accessed through https://capstone.ustp.party/.
 
+### Tech Stack
+
+- Frontend: Svelte (Cloudflare Workers)
+- Backend: FastAPI (Locally deployed/[Railway](https://railway.com/))
+
 ### Hosting
 
 To host this app, we need to host both the FastAPI backend and Svelte frontend.
@@ -29,9 +34,11 @@ To host this app, we need to host both the FastAPI backend and Svelte frontend.
 #### Backend
 
 First, clone the repo.
+
 ```bash
 git clone https://github.com/iragca/capstone2-project-2.git
 ```
+
 Make sure to have an `.env` file in the root directory.
 
 The required variables are detailed as follows:
@@ -87,9 +94,17 @@ npm run preview
 
 You can host the frontend on Cloudflare Workers (the current setup).
 
-The documentation for that is located [here](https://developers.cloudflare.com/workers/framework-guides/web-apps/svelte/).
+The official documentation for that is located [here](https://developers.cloudflare.com/workers/framework-guides/web-apps/svelte/).
 
-### Tech Stack
+But since this repo is already configured for this setup. We simply run:
 
-- Frontend: Svelte (Cloudflare Workers)
-- Backend: FastAPI (Locally deployed/Railway)
+```bash
+npm run deploy
+```
+
+This will automatically deploy to Cloudflare Workers.
+After which, you will be prompted to authenticate your own Cloudflare Account. Then the frontend is deployed to
+
+````{admonition} Expenses
+This will deploy to the cloud, using cloud resources! So make sure to be aware that what you are using is free of charge, or that you are willing to pay for cloud costs. Last I checked, [Cloudflare Workers](https://workers.cloudflare.com/) are free.
+````
