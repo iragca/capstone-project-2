@@ -77,6 +77,12 @@ def arg_parser():
         default=False,
         help="Flag to use GraphSAGE convolutional layers instead of GCN.",
     )
+    parser.add_argument(
+        "--experiment-name",
+        type=str,
+        default="Random Experiment",
+        help="Name of the MLflow experiment.",
+    )
 
     args = parser.parse_args()
 
@@ -98,7 +104,7 @@ def main():
 
     warnings.filterwarnings("ignore")
     mlflow.set_tracking_uri(uri="http://192.168.100.203:5000/")
-    mlflow.set_experiment("[CAPSTONE-2] Link Prediction - 200 Epochs")
+    mlflow.set_experiment(f"[CAPSTONE-2] {args['experiment_name']}")
 
     dataset_loader = DatasetLoader(PBWarehouse())
     data: pl.DataFrame = dataset_loader.load_dataset()

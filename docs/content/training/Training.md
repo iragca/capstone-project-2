@@ -12,18 +12,19 @@ The three main classes we need are:
 
 These arguments are available for configuration as decided by the user.
 
-| Argument          | Type    | Default                         | Description                                                     |
-| ----------------- | ------- | ------------------------------- | --------------------------------------------------------------- |
-| `--epochs`        | `int`   | `50`                            | Number of epochs to train. Must be > 0.                         |
-| `--hidden_dim`    | `int`   | `128`                           | Hidden dimension of the model. Must be > 0.                     |
-| `--threshold`     | `float` | `0.5`                           | Threshold for classification. Must be between 0 and 1.          |
-| `--device`        | `str`   | `cuda` if available, else `cpu` | Device to use for training (`cpu` or `cuda`).                   |
-| `--num_layers`    | `int`   | `8`                             | Number of layers in the model.                                  |
-| `--heterogeneous` | `flag`  | `False`                         | If set, use a heterogeneous graph instead of a homogeneous one. |
-| `--directed`      | `flag`  | `False`                         | If set, build a directed graph instead of an undirected one.    |
-| `--c`             | `flag`  | `False`                         | Configuration/development/testing flag for the script.          |
-| `--save-model`    | `flag`  | `False`                         | If set, save the best model after training.                     |
-| `--graphsage`     | `flag`  | `False`                         | If set, use GraphSAGE convolutional layers instead of GCN.      |
+| Argument            | Type    | Default                         | Description                                                     |
+| ------------------- | ------- | ------------------------------- | --------------------------------------------------------------- |
+| `--epochs`          | `int`   | `50`                            | Number of epochs to train. Must be > 0.                         |
+| `--hidden_dim`      | `int`   | `128`                           | Hidden dimension of the model. Must be > 0.                     |
+| `--threshold`       | `float` | `0.5`                           | Threshold for classification. Must be between 0 and 1.          |
+| `--device`          | `str`   | `cuda` if available, else `cpu` | Device to use for training (`cpu` or `cuda`).                   |
+| `--num_layers`      | `int`   | `8`                             | Number of layers in the model.                                  |
+| `--heterogeneous`   | `flag`  | `False`                         | If set, use a heterogeneous graph instead of a homogeneous one. |
+| `--directed`        | `flag`  | `False`                         | If set, build a directed graph instead of an undirected one.    |
+| `--c`               | `flag`  | `False`                         | Configuration/development/testing flag for the script.          |
+| `--save-model`      | `flag`  | `False`                         | If set, save the best model after training.                     |
+| `--graphsage`       | `flag`  | `False`                         | If set, use GraphSAGE convolutional layers instead of GCN.      |
+| `--experiment-name` | `str`   | `Production`                    | Sets the experiment name to be used in the MLflow dashboard.    |
 
 ### Example
 
