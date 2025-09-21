@@ -20,7 +20,8 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def load_model():
     model_path = PROJECT_ROOT / "best_model.pth"
-    model = HomoGNN(input_size=5, hidden_size=32).to(DEVICE)
+    # NOTE: Make sure to adjust this whenever changing model architecture
+    model = HomoGNN(input_size=5, hidden_size=24).to(DEVICE)
     model.load_state_dict(torch.load(model_path, map_location=DEVICE))
     return model
 
