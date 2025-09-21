@@ -25,6 +25,14 @@ These arguments are available for configuration as decided by the user.
 | `--save-model`    | `flag`  | `False`                         | If set, save the best model after training.                     |
 | `--graphsage`     | `flag`  | `False`                         | If set, use GraphSAGE convolutional layers instead of GCN.      |
 
+### Example
+
+To run a single experiment run:
+
+```bash
+uv run model_training.py --epochs 200 --hidden_dim 24 --graphsage --save-model
+```
+
 ## Choosing features to use
 
 To choose features, simply add / comment out (remove) the name of the column in the corresponding list as input to the {class}`src.models.Features` class.
