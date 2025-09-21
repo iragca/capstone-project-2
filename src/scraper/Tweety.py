@@ -202,4 +202,6 @@ class TweetyScraper:
             status="not fetched",
             creation_date=str(user.created_at),
             friends=user.friends_count,
+            profile_image_url=user.profile_image_url,
+            profile_banner_url=user.profile_banner_url,
         )

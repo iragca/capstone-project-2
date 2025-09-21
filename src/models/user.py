@@ -42,6 +42,8 @@ class User(BaseModel):
     bot: Optional[bool] = None
     location: Optional[str] = None
     description: str
+    profile_image_url: Optional[str] = None
+    profile_banner_url: Optional[str] = None
     status: Literal["fetched", "not fetched", "fetching", ""] = "not fetched"
     creation_date: Optional[str]
     friends: Optional[int] = 0
