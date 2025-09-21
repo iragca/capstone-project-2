@@ -1,6 +1,7 @@
 from asyncio import run
-from typing import Optional
+from typing import Optional, Any
 
+from matplotlib.style import use
 import polars as pl
 import torch
 from deepsnap.dataset import GraphDataset
@@ -87,14 +88,14 @@ class InferenceRequest(BaseModel):
     options: Optional[InferenceOptions] = InferenceOptions()
 
 
-class Result(BaseModel):
+class InferenceResult(BaseModel):
     node: Tweet
     score: float
 
 
 class Response(BaseModel):
     message: str
-    data: Optional[list[Result]] = None
+    data: Optional[Any] = None
 
 
 @app.get("/")
@@ -173,9 +174,24 @@ def inference(request: InferenceRequest):
             tweet = Tweet(**pb.get_tweet_by_id(node_id).__dict__)
             tweet.user_id = User(**pb.get_user_by_id(tweet.user_id).__dict__)
 
-            return_data.append(Result(node=tweet, score=probability))
+            return_data.append(InferenceResult(node=tweet, score=probability))
 
     return {"message": "Inference request received", "data": return_data}
+
+
+@app.get("/user/{username}", response_model=Response)
+async def get_user(username: str):
+    try:
+        user_record = pb.get_user_by_username(username)
+        user = User(**user_record.__dict__) if user_record else None
+    except Exception:
+        user = run(scraper.get_user_info(username=username))
+        pb.ingest_user(user)
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"message": "User found", "data": user}
 
 
 @app.get("/health")
