@@ -31,7 +31,7 @@ class InferenceEngine:
         top_k: int = 10,
         strict_matching: bool = False,
         descending: bool = True,
-    ) -> List[TweetLinkProbability]:
+    ) -> Union[List[TweetLinkProbability], User]:
         user_exists = self.pb.does_user_exist(
             username=username, user_id=user_id, strict=strict_matching
         )
@@ -55,7 +55,9 @@ class InferenceEngine:
                 return None
             self.pb.ingest_user(user)
 
-        return self.inference(user, descending=descending, top_k=top_k)
+        inference_result = self.inference(user, descending=descending, top_k=top_k)
+
+        return inference_result, user
 
     def inference(
         self, user: User, descending: bool = True, top_k: int = 10
