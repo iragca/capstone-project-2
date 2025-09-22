@@ -51,8 +51,8 @@ class InferenceEngine:
 
         Notes
         -----
-        This method depends on both the graph builder for feature extraction
-        and the database (`PBWarehouse`) for hydrating tweet and user data.
+        This method depends on both the :class:`~src.data.GraphBuilder` for feature extraction
+        and the database :class:`~src.db.PBWarehouse` for hydrating tweet and user data.
         """
         user_vector = self.gb.get_features(user.model_dump(), "user")
         DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
