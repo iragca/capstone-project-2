@@ -3,6 +3,8 @@ from typing import Literal
 import networkx as nx
 import torch
 
+from src.models import TweetLinkProbability
+
 
 class InferenceResults:
     """
@@ -160,7 +162,7 @@ class InferenceResults:
         k: int = 10,
         descending: bool = True,
         label: Literal[0, 1, 2, 3] = 0,
-    ) -> list[tuple[int, float]]:
+    ) -> list[TweetLinkProbability]:
         """
         Get the top-k nodes of a certain label most likely connected to a given user.
 
@@ -177,8 +179,8 @@ class InferenceResults:
 
         Returns
         -------
-        list of tuple of (int, float)
-            A list of `(node_id, probability)` tuples, sorted by probability.
+        list of TweetLinkProbability
+            A list of `TweetLinkProbability` objects, sorted by score/probability.
 
         Raises
         ------
