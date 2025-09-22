@@ -1,19 +1,22 @@
 from asyncio import run
-from typing import Optional, Any
 
-from matplotlib.style import use
 import polars as pl
 import torch
-from deepsnap.dataset import GraphDataset
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
 
 from src.architectures import HomoGNN
 from src.config import PROJECT_ROOT
-from src.data import DatasetLoader, GraphBuilder, InferenceResults, Preprocessor
+from src.data import DatasetLoader, GraphBuilder, Preprocessor
 from src.db import PBWarehouse
-from src.models import Features, Graph, Tweet, User
+from src.inference import InferenceEngine
+from src.models import Features, Graph, User
+from src.models.backend import (
+    GetUserAPIResponse,
+    InferenceAPIResponse,
+    InferenceRequest,
+)
 from src.scraper import TweetyScraper
+from src.service import UserService
 
 app = FastAPI()
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,6 +40,7 @@ def load_data(_pb: PBWarehouse):
 model: HomoGNN = load_model()
 pb: PBWarehouse = PBWarehouse()
 scraper: TweetyScraper = TweetyScraper(previous_session=True)
+user_service = UserService(pb, scraper)
 data: pl.DataFrame = load_data(pb)
 
 node_features = Features(
@@ -66,121 +70,34 @@ gb = GraphBuilder(data=data, node_features=node_features)
 graph: Graph = gb.create_graph()
 
 
-class InferenceOptions(BaseModel):
-    top_k: Optional[int] = Field(
-        10, description="Number of top similar tweets to return", minimum=1, maximum=50
-    )
-    strict_matching: Optional[bool] = Field(
-        True, description="Whether to use strict matching for user lookup"
-    )
-    descending: bool = Field(
-        True, description="Whether to sort results in descending order of similarity"
-    )
-
-
-class InferenceRequest(BaseModel):
-    username: str = Field(
-        ..., example="elonmusk", description="Twitter handle of the user", min_length=1
-    )
-    user_id: Optional[str] = Field(
-        None, example="44196397", description="Twitter ID of the user", min_length=1
-    )
-    options: Optional[InferenceOptions] = InferenceOptions()
-
-
-class InferenceResult(BaseModel):
-    node: Tweet
-    score: float
-
-
-class Response(BaseModel):
-    message: str
-    data: Optional[Any] = None
-    user: Optional[User] = None
-
-
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the MVP3 Backend!"}
 
 
-@app.post("/inference", response_model=Response)
+@app.post("/inference", response_model=InferenceAPIResponse)
 def inference(request: InferenceRequest):
-    x_handle = request.username
-    x_user_id = request.user_id
-    top_k = request.options.top_k if request.options and request.options.top_k else 10
-    strict_matching = (
-        request.options.strict_matching
-        if request.options and request.options.strict_matching
-        else False
+    engine = InferenceEngine(model=model, graph=graph, gb=gb, pb=pb)
+
+    user = user_service.get_or_fetch_user(
+        username=request.username,
+        user_id=request.user_id,
+        strict_matching=request.options.strict_matching,
     )
-    descending = request.options.descending if request.options else True
-
-    user_exists = pb.does_user_exist(
-        user_id=x_user_id, username=x_handle, strict=strict_matching
-    )
-
-    if user_exists:
-        if x_user_id is not None:
-            user_record = pb.get_user_by_id(x_user_id)
-        else:
-            user_record = pb.get_user_by_username(x_handle, strict=strict_matching)
-
-        user = User(**user_record.__dict__)
-
-    else:
-
-        async def fetch_user_info():
-            user: User = await scraper.get_user_info(
-                int(x_user_id) if x_user_id else None, x_handle
-            )
-            return user
-
-        user = run(fetch_user_info())
-
-        if user is None:
-            raise HTTPException(
-                status_code=404,
-                detail="User not found. Please check the handle or user ID.",
-            )
-
-        pb.ingest_user(user)
-
-    # Generate user vector and add node to graph
-    user_vector = gb.get_features(user.model_dump(), "user")
-    graph.add_node(
-        int(user.user_id),
-        node_label=3,
-        node_feature=user_vector,
-        node_type="user",
+    list_of_scored_tweets = engine(
+        user=user,
+        top_k=request.options.top_k,
+        descending=request.options.descending,
     )
 
-    dataset = GraphDataset([graph], task="link_pred", edge_train_mode="disjoint")
-
-    model.eval()
-    with torch.no_grad():
-        node_embeddings, edge_label_index = model(dataset[0].to(DEVICE))
-        results = InferenceResults(
-            graph=graph,
-            node_embeddings=node_embeddings.cpu(),
-            edge_label_index=edge_label_index.cpu(),
-        )
-
-        topk_results = results.get_top_k_similar_nodes_linked_to_user(
-            user_id=int(user.user_id), descending=descending, label=0, k=top_k
-        )
-
-        return_data = []
-        for node_id, probability in topk_results:
-            tweet = Tweet(**pb.get_tweet_by_id(node_id).__dict__)
-            tweet.user_id = User(**pb.get_user_by_id(tweet.user_id).__dict__)
-
-            return_data.append(InferenceResult(node=tweet, score=probability))
-
-    return {"message": "Inference request received", "data": return_data, "user": user}
+    return {
+        "message": "Inference request received",
+        "data": list_of_scored_tweets,
+        "user": user,
+    }
 
 
-@app.get("/user/{username}", response_model=Response)
+@app.get("/user/{username}", response_model=GetUserAPIResponse)
 async def get_user(username: str):
     try:
         user_record = pb.get_user_by_username(username)
