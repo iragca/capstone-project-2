@@ -45,10 +45,10 @@ def arg_parser():
         help="Number of layers in the model.",
     )
     parser.add_argument(
-        "--heterogeneous",
+        "--homogeneous",
         action="store_true",
         default=False,
-        help="Whether to use a heterogeneous graph.",
+        help="Whether to use a homogeneous graph.",
     )
     parser.add_argument(
         "--directed",
@@ -143,18 +143,18 @@ def main():
     input_dim = datasets["train"].num_node_features
     # num_classes = datasets["train"].num_edge_labels
 
-    if args["heterogeneous"]:
-        graph = HeteroGraph(graph)
-        model = HeteroGNN(hetero=graph, hidden_size=args["hidden_dim"]).to(
-            args["device"]
-        )
-    else:
+    if args["homegenous"]:
         model = HomoGNN(
             input_size=input_dim,
             hidden_size=args["hidden_dim"],
             num_layers=args["num_layers"],
             GraphSAGE=args["graphsage"],
         ).to(args["device"])
+    else:
+        graph = HeteroGraph(graph)
+        model = HeteroGNN(hetero=graph, hidden_size=args["hidden_dim"]).to(
+            args["device"]
+        )
 
     optimizer = torch.optim.SGD(
         model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4
