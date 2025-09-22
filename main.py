@@ -143,7 +143,7 @@ def install_torch_geometric_dependencies(pip: bool = False) -> None:
             check=True,
         )
         return
-    
+
     subprocess.run(
         ["uv", "pip", "install", "torch-scatter", "-f", scatter_src],
         check=True,
@@ -160,32 +160,6 @@ def update_dataset_cache() -> None:
     """Update the dataset cache."""
     dataset_loader = DatasetLoader(PBWarehouse())
     dataset_loader.update_cache()
-
-
-@cli.command()
-@function_logger(LOGGER_DIR=LOGGER_DIR)
-def multiple_training(trials: int = 50) -> None:
-    """Run the HateBERT training multiple times.
-    Often done to find the standard error of a statistic.
-    """
-    # TODO: make this like python *kwargs style
-    # >>> python script.py learning_rate=0.01 batch_size=32
-    # >> kwargs = dict(arg.split("=") for arg in sys.argv[1:])
-    # >> print(kwargs)  # {'learning_rate': '0.01', 'batch_size': '32'}
-
-    for trial in range(trials):
-        subprocess.run(
-            [
-                "uv",
-                "run",
-                "hatebert_training.py",
-                "--hidden_dim",
-                "24",
-                "--epochs",
-                "200",
-            ],
-            check=True,
-        )
 
 
 if __name__ == "__main__":
