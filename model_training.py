@@ -16,9 +16,10 @@ from torch.utils.data import DataLoader
 from torchinfo import summary
 
 from src.architectures import HeteroGNN, HomoGNN
-from src.data import DatasetLoader, GraphBuilder, ModelTrainer, Preprocessor
+from src.data import DatasetLoader, GraphBuilder, Preprocessor
 from src.db import PBWarehouse
 from src.models import Features
+from src.training import ModelTrainer
 
 
 def arg_parser():
