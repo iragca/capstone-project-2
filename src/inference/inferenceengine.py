@@ -1,67 +1,59 @@
-from asyncio import run
-from typing import List, Optional, Union
+from typing import List, Union
 
 import torch
 from deepsnap.dataset import GraphDataset
 
 from src.architectures import HomoGNN
-from src.data import InferenceResults
+from src.data import GraphBuilder, InferenceResults
 from src.db import PBWarehouse
 from src.models import DiGraph, Graph, Tweet, TweetLinkProbability, User
-from src.scraper import TweetyScraper
 
 
 class InferenceEngine:
     def __init__(
         self,
         model: HomoGNN,
-        pb: PBWarehouse,
-        scraper: TweetyScraper,
         graph: Union[DiGraph, Graph],
+        gb: GraphBuilder,
+        pb: PBWarehouse,
     ):
         self.model = model
-        self.pb = pb
-        self.scraper = scraper
         self.graph = graph
+        self.gb = gb
+        self.pb = pb
 
     def __call__(
-        self,
-        username: str,
-        user_id: Optional[str] = None,
-        top_k: int = 10,
-        strict_matching: bool = False,
-        descending: bool = True,
-    ) -> Union[List[TweetLinkProbability], User]:
-        user_exists = self.pb.does_user_exist(
-            username=username, user_id=user_id, strict=strict_matching
-        )
-
-        if user_exists:
-            if user_id is not None:
-                user_record = self.pb.get_user_by_id(user_id)
-            else:
-                user_record = self.pb.get_user_by_username(
-                    username, strict=strict_matching
-                )
-
-            user = User(**user_record.__dict__)
-
-        else:
-            user = run(
-                self.scraper.get_user_info(int(user_id) if user_id else None, username)
-            )
-
-            if user is None:
-                return None
-            self.pb.ingest_user(user)
-
-        inference_result = self.inference(user, descending=descending, top_k=top_k)
-
-        return inference_result, user
-
-    def inference(
         self, user: User, descending: bool = True, top_k: int = 10
     ) -> List[TweetLinkProbability]:
+        """
+        Perform link prediction inference for a given user and hydrate results.
+
+        This method adds the user as a node in the graph, computes node
+        embeddings using the GNN model, and retrieves the top-k most
+        probable tweet links associated with that user. For each predicted
+        tweet node, the corresponding tweet and author information are
+        fetched from the database and returned as hydrated objects.
+
+        Parameters
+        ----------
+        user : User
+            The user object for which to run inference.
+        descending : bool, default=True
+            Whether to sort predicted links in descending order of probability.
+        top_k : int, default=10
+            The number of top candidate tweet links to return.
+
+        Returns
+        -------
+        List[TweetLinkProbability]
+            A list of TweetLinkProbability objects containing the predicted
+            tweets, their associated authors, and link prediction scores.
+
+        Notes
+        -----
+        This method depends on both the graph builder for feature extraction
+        and the database (`PBWarehouse`) for hydrating tweet and user data.
+        """
         user_vector = self.gb.get_features(user.model_dump(), "user")
         DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
