@@ -36,7 +36,7 @@ uv run model_training.py --epochs 200 --hidden_dim 24 --graphsage --save-model
 
 ### Multiple Trials
 
-If you want run multiple trials of the same configuration, it is best to use `multiple_trials.py`
+If you want to run multiple trials of the same configuration, it is best to use `multiple_trials.py`.
 
 ```bash
 uv run multiple_trials.py
