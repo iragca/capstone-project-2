@@ -7,8 +7,9 @@ from deepsnap.dataset import GraphDataset
 
 from src.architectures import HomoGNN
 from src.config import PROJECT_ROOT
-from src.data import DatasetLoader, GraphBuilder, InferenceResults, Preprocessor
+from src.data import DatasetLoader, GraphBuilder, Preprocessor
 from src.db import PBWarehouse
+from src.inference import InferenceResults
 from src.models import Features, Graph, User
 from src.scraper import TweetyScraper
 

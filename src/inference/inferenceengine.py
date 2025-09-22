@@ -4,8 +4,9 @@ import torch
 from deepsnap.dataset import GraphDataset
 
 from src.architectures import HomoGNN
-from src.data import GraphBuilder, InferenceResults
+from src.data import GraphBuilder
 from src.db import PBWarehouse
+from src.inference import InferenceResults
 from src.models import DiGraph, Graph, Tweet, TweetLinkProbability, User
 
 
