@@ -26,13 +26,28 @@ These arguments are available for configuration as decided by the user.
 | `--graphsage`       | `flag`  | `False`                         | If set, use GraphSAGE convolutional layers instead of GCN.      |
 | `--experiment-name` | `str`   | `Production`                    | Sets the experiment name to be used in the MLflow dashboard.    |
 
-### Example
+### Single Experiment
 
 To run a single experiment run:
 
 ```bash
 uv run model_training.py --epochs 200 --hidden_dim 24 --graphsage --save-model
 ```
+
+### Multiple Trials
+
+If you want run multiple trials of the same configuration, it is best to use `multiple_trials.py`
+
+```bash
+uv run multiple_trials.py
+```
+<video controls width="600">
+  <source src="../../_static/videos/multi-runs.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+The CLI will prompt you of your available choices. The yellow text means it is the default, replace the default values with your own if needed. Then simply press `Enter`.
+
 
 ## Choosing features to use
 
