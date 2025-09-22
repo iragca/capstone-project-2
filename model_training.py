@@ -1,5 +1,4 @@
 import argparse
-import copy
 import logging
 import warnings
 
@@ -13,13 +12,11 @@ from deepsnap.dataset import GraphDataset
 from deepsnap.hetero_graph import HeteroGraph
 from mlflow.models.signature import ModelSignature
 from mlflow.types.schema import Schema, TensorSpec
-from sklearn.metrics import f1_score, roc_auc_score
 from torch.utils.data import DataLoader
 from torchinfo import summary
-from tqdm import tqdm
 
 from src.architectures import HeteroGNN, HomoGNN
-from src.data import DatasetLoader, GraphBuilder, Preprocessor
+from src.data import DatasetLoader, GraphBuilder, ModelTrainer, Preprocessor
 from src.db import PBWarehouse
 from src.models import Features
 
@@ -195,8 +192,16 @@ def main():
         mlflow.set_tag("task", "link prediction")
         mlflow.set_tag("nature", "transductive")
 
+        trainer = ModelTrainer(
+            args=args,
+            dataset=dataset,
+            model=model,
+            optimizer=optimizer,
+            dataloaders=dataloaders,
+        )
+
         try:
-            best_model = train(model, dataloaders, optimizer, args)
+            best_model = trainer.train()
         except Exception as e:
             with open("error_log.txt", "w") as f:
                 f.write(str(e))
@@ -248,9 +253,9 @@ def main():
             signature=signature,
         )
 
-        best_train_scores = test(best_model, dataloaders["train"], args)
-        best_val_scores = test(best_model, dataloaders["val"], args)
-        best_test_scores = test(best_model, dataloaders["test"], args)
+        best_train_scores = trainer.evaluate(dataloaders["train"])
+        best_val_scores = trainer.evaluate(dataloaders["val"])
+        best_test_scores = trainer.evaluate(dataloaders["test"])
 
         print(
             f"Best Train ROC AUC: {best_train_scores['roc_auc']:.4f}, "
@@ -262,92 +267,6 @@ def main():
         if args["save_model"]:
             torch.save(best_model.state_dict(), "best_model.pth")
             mlflow.log_artifact("best_model.pth")
-
-
-def train(model, dataloaders, optimizer, args, print_progress=False):
-    val_max = 0
-    best_model = model
-
-    for epoch in tqdm(range(1, args["epochs"] + 1), desc="Training Epochs", ncols=100):
-        for i, batch in enumerate(dataloaders["train"]):
-            batch.to(args["device"])
-            model.train()
-            optimizer.zero_grad()
-            embeddings, edge_label_index = model(batch)
-
-            nodes_first = torch.index_select(
-                embeddings, 0, edge_label_index[0, :].long()
-            )
-            nodes_second = torch.index_select(
-                embeddings, 0, edge_label_index[1, :].long()
-            )
-            pred = torch.sum(nodes_first * nodes_second, dim=-1)
-
-            loss = model.loss(pred, batch.edge_label.type(pred.dtype))
-            # print(pred[0], batch.edge_label.type(pred.dtype)[0])
-            loss.backward()
-            optimizer.step()
-
-            score_train = test(model, dataloaders["train"], args)
-            score_val = test(model, dataloaders["val"], args)
-            score_test = test(model, dataloaders["test"], args)
-
-            if print_progress:
-                print(
-                    f"Epoch: {epoch:03d}, Batch: {i:03d}, "
-                    f"Train ROC AUC: {score_train['roc_auc']:.4f}, "
-                    f"Val ROC AUC: {score_val['roc_auc']:.4f}, "
-                    f"Val F1 Score: {score_val['f1_score']:.4f}, "
-                    f"Test ROC AUC: {score_test['roc_auc']:.4f}, "
-                    f"Test F1 Score: {score_test['f1_score']:.4f}, "
-                    f"Loss: {loss.item():.5f}"
-                )
-
-            mlflow.log_metrics(
-                {
-                    "TRAIN: ROC-AUC": score_train["roc_auc"],
-                    "VAL: ROC-AUC": score_val["roc_auc"],
-                    "TEST: ROC-AUC": score_test["roc_auc"],
-                    "TRAIN: F1 Score": score_train["f1_score"],
-                    "VAL: F1 Score": score_val["f1_score"],
-                    "TEST: F1 Score": score_test["f1_score"],
-                    "Loss": loss.item(),
-                },
-                step=epoch,
-            )
-
-            if val_max < score_val["roc_auc"]:
-                val_max = score_val["roc_auc"]
-                best_model = copy.deepcopy(model)
-    return best_model
-
-
-def test(model, dataloader, args):
-    model.eval()
-    score = 0
-    f1_score_count = 0
-    num_batches = 0
-    for batch in dataloader:
-        batch.to(args["device"])
-        embeddings, edge_label_index = model(batch)
-        nodes_first = torch.index_select(embeddings, 0, edge_label_index[0, :].long())
-        nodes_second = torch.index_select(embeddings, 0, edge_label_index[1, :].long())
-        pred = torch.sum(nodes_first * nodes_second, dim=-1)
-        pred = torch.sigmoid(pred)
-        score += roc_auc_score(
-            batch.edge_label.flatten().cpu().numpy(), pred.flatten().data.cpu().numpy()
-        )
-        pred_labels = (pred > args["threshold"]).float()
-        f1_score_count += f1_score(
-            batch.edge_label.flatten().cpu().numpy(),
-            pred_labels.flatten().data.cpu().numpy(),
-            zero_division=0,
-        )
-        num_batches += 1
-    return {
-        "roc_auc": score / num_batches,
-        "f1_score": f1_score_count / num_batches,
-    }
 
 
 if __name__ == "__main__":
