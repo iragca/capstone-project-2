@@ -143,7 +143,7 @@ def main():
     input_dim = datasets["train"].num_node_features
     # num_classes = datasets["train"].num_edge_labels
 
-    if args["homegenous"]:
+    if args["homogeneous"]:
         model = HomoGNN(
             input_size=input_dim,
             hidden_size=args["hidden_dim"],
