@@ -93,3 +93,4 @@ class InferenceEngine:
                 tweet.user_id = User(**self.pb.get_user_by_id(tweet.user_id).__dict__)
 
                 return_data.append(TweetLinkProbability(tweet=tweet, score=probability))
+            return return_data
