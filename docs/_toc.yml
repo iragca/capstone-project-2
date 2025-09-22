@@ -31,4 +31,5 @@ parts:
   - caption: "Inference"
     chapters:
       - file: content/inference/Inference
+      - file: content/inference/Engine
       - file: content/inference/MVPs
