@@ -58,6 +58,7 @@ class Settings(Enum):
     POCKETBASE_URL = os.getenv("POCKETBASE_URL", "")
     WANDB_API_KEY = os.getenv("WANDB_API_KEY", "")
     WANDB_ENTITY = os.getenv("WANDB_ENTITY", "")
+    MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "")
 
 
 # Log key paths

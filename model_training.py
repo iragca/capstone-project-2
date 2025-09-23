@@ -20,6 +20,7 @@ from src.data import DatasetLoader, GraphBuilder, Preprocessor
 from src.db import PBWarehouse
 from src.models import Features
 from src.training import ModelTrainer
+from src.config import Settings
 
 
 def arg_parser():
@@ -101,7 +102,7 @@ def main():
     args = arg_parser()
 
     warnings.filterwarnings("ignore")
-    mlflow.set_tracking_uri(uri="http://192.168.100.203:5000/")
+    mlflow.set_tracking_uri(uri=Settings.MLFLOW_TRACKING_URI.value)
     mlflow.set_experiment(f"[CAPSTONE-2] {args['experiment_name']}")
 
     dataset_loader = DatasetLoader(PBWarehouse())
