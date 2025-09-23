@@ -46,3 +46,27 @@ uv run main.py install-torch-geometric-dependencies
 `uv sync` installs project dependencies as specified in the [`pyproject.toml`](https://github.com/iragca/capstone-project-2/blob/master/pyproject.toml).
 
 The second line installs [PyTorch Geoemetric](https://pytorch-geometric.readthedocs.io/en/latest/) dependencies, `torch-sparse` and `torch-scatter`.
+
+## Environment Variables
+
+Better to set these environment variables now to only think about them once.
+
+```bash
+X_USERNAME=
+X_PASSWORD=
+X_TOTP= # This the code for your Two Factor Authentication Token, not your TOTP
+
+# Database
+POCKETBASE_EMAIL=
+POCKETBASE_PASSWORD=
+POCKETBASE_URL=https://capstone.gari-homelab.party
+
+# Scraper variables
+X_RAPIDAPI_KEY=
+OLD_BIRD_CONTINUATION_TOKEN=
+OLD_BIRD_USERS_CONTINUATION_TOKEN=
+
+# MLOps
+MLFLOW_RECORD_ENV_VARS_IN_MODEL_LOGGING=false
+MLFLOW_TRACKING_URI=https://mlflow.gari-homelab.party
+```
