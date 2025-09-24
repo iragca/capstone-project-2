@@ -10,7 +10,7 @@ class ModelTrainer:
     def __init__(self, args, dataset, model, optimizer, dataloaders):
         self.args = args
         self.dataset = dataset
-        self.model = model
+        self.model = model.to(args["device"])
         self.optimizer = optimizer
         self.dataloaders = dataloaders
         self.device = args["device"]
@@ -23,37 +23,23 @@ class ModelTrainer:
             range(1, self.args["epochs"] + 1), desc="Training Epochs", ncols=100
         ):
             for i, batch in enumerate(self.dataloaders["train"]):
-                batch.to(self.device)
-                self.model.train()
-                self.optimizer.zero_grad()
-                embeddings, edge_label_index = self.model(batch)
-
-                nodes_first = torch.index_select(
-                    embeddings, 0, edge_label_index[0, :].long()
-                )
-                nodes_second = torch.index_select(
-                    embeddings, 0, edge_label_index[1, :].long()
-                )
-                pred = torch.sum(nodes_first * nodes_second, dim=-1)
-
-                loss = self.model.loss(pred, batch.edge_label.type(pred.dtype))
-                loss.backward()
-                self.optimizer.step()
-
+                loss = self.train_step(batch)
 
                 metrics = {}
 
                 for split in ["train", "val", "test"]:
                     score = self.evaluate(self.dataloaders[split])
-                    metrics.update({
-                        f"{split.upper()}: ROC-AUC": score["roc_auc"],
-                        f"{split.upper()}: F1 Score": score["f1_score"],
-                        f"{split.upper()}: Precision": score["precision"],
-                        f"{split.upper()}: Recall": score["recall"],
-                        f"{split.upper()}: AUC": score["auc"]
-                    })
+                    metrics.update(
+                        {
+                            f"{split.upper()}: ROC-AUC": score["roc_auc"],
+                            f"{split.upper()}: F1 Score": score["f1_score"],
+                            f"{split.upper()}: Precision": score["precision"],
+                            f"{split.upper()}: Recall": score["recall"],
+                            f"{split.upper()}: AUC": score["auc"],
+                        }
+                    )
 
-                metrics["Loss"] = loss.item()
+                metrics["Loss"] = loss
 
                 mlflow.log_metrics(metrics, step=epoch)
 
@@ -73,16 +59,10 @@ class ModelTrainer:
         num_batches = 0
 
         for batch in dataloader:
-            batch.to(self.device)
-            embeddings, edge_label_index = self.model(batch)
-            nodes_first = torch.index_select(
-                embeddings, 0, edge_label_index[0, :].long()
+            embeddings, edge_label_index = self.forward_pass(batch)
+            pred = torch.sigmoid(
+                self.dot_product_similarity(embeddings, edge_label_index)
             )
-            nodes_second = torch.index_select(
-                embeddings, 0, edge_label_index[1, :].long()
-            )
-            pred = torch.sum(nodes_first * nodes_second, dim=-1)
-            pred = torch.sigmoid(pred)
 
             y_true = batch.edge_label.flatten().cpu().numpy()
             y_pred = pred.flatten().data.cpu().numpy()
@@ -121,3 +101,30 @@ class ModelTrainer:
             "precision": precision_score_count / num_batches,
             "auc": auc_score_count / num_batches,
         }
+
+    def train_step(self, batch) -> float:
+        self.model.train()
+        self.optimizer.zero_grad()
+
+        embeddings, edge_label_index = self.forward_pass(batch)
+        pred = self.dot_product_similarity(embeddings, edge_label_index)
+        loss = self.model.loss(pred, batch.edge_label.type(pred.dtype))
+
+        loss.backward()
+        self.optimizer.step()
+
+        return loss.item()
+
+    def forward_pass(self, batch) -> tuple[torch.Tensor, torch.Tensor]:
+        batch.to(self.device)
+        embeddings, edge_label_index = self.model(batch)
+        return embeddings, edge_label_index
+
+    def dot_product_similarity(self, node_embeddings, edge_label_index):
+        nodes_first = torch.index_select(
+            node_embeddings, 0, edge_label_index[0, :].long()
+        )
+        nodes_second = torch.index_select(
+            node_embeddings, 0, edge_label_index[1, :].long()
+        )
+        return torch.sum(nodes_first * nodes_second, dim=-1)
