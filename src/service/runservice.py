@@ -184,9 +184,9 @@ class ExperimentService:
                     "threshold": float(params.get("threshold", None)),
                     "device": params.get("device", None),
                     "num_layers": int(params.get("num_layers", None)),
-                    "homogeneous": bool(params.get("homogeneous", None)),
-                    "directed": bool(params.get("directed", None)),
-                    "graphsage": bool(params.get("graphsage", None)),
+                    "homogeneous":self.str_to_bool(params.get("homogeneous", None)),
+                    "directed":self.str_to_bool(params.get("directed", None)),
+                    "graphsage":self.str_to_bool(params.get("graphsage", None)),
                     "experiment_name": params.get("experiment_name", None),
                 }
             )
@@ -253,6 +253,9 @@ class ExperimentService:
         if experiment is None:
             raise ValueError(f"Experiment '{name}' does not exist.")
         return experiment
+
+    def str_to_bool(self, value: str) -> bool:
+        return str(value).lower() in ("true", "1", "yes")
 
     @property
     def base_schema(self) -> dict[str, type]:
