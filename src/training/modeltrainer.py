@@ -1,8 +1,17 @@
 import copy
 
 import mlflow
+import numpy as np
 import torch
-from sklearn.metrics import auc, f1_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    auc,
+    f1_score,
+    precision_recall_curve,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 from tqdm import tqdm
 
 
@@ -35,7 +44,8 @@ class ModelTrainer:
                             f"{split.upper()}: F1 Score": score["f1_score"],
                             f"{split.upper()}: Precision": score["precision"],
                             f"{split.upper()}: Recall": score["recall"],
-                            f"{split.upper()}: AUC": score["auc"],
+                            f"{split.upper()}: PR-AUC": score["pr_auc"],
+                            f"{split.upper()}: Accuracy": score["accuracy"],
                         }
                     )
 
@@ -51,12 +61,9 @@ class ModelTrainer:
 
     def evaluate(self, dataloader):
         self.model.eval()
-        score = 0
-        f1_score_count = 0
-        recall_score_count = 0
-        precision_score_count = 0
-        auc_score_count = 0
-        num_batches = 0
+
+        all_y_true = []
+        all_y_pred = []
 
         for batch in dataloader:
             embeddings, edge_label_index = self.forward_pass(batch)
@@ -66,40 +73,27 @@ class ModelTrainer:
 
             y_true = batch.edge_label.flatten().cpu().numpy()
             y_pred = pred.flatten().data.cpu().numpy()
-            pred_labels = (pred > self.args["threshold"]).float()
-            y_labels_pred = pred_labels.flatten().data.cpu().numpy()
 
-            score += roc_auc_score(
-                y_true,
-                y_pred,
-            )
-            auc_score_count += auc(
-                y_true,
-                y_pred,
-            )
-            f1_score_count += f1_score(
-                y_true,
-                y_labels_pred,
-                zero_division=0,
-            )
-            recall_score_count += recall_score(
-                y_true,
-                y_labels_pred,
-                zero_division=0,
-            )
-            precision_score_count += precision_score(
-                y_true,
-                y_labels_pred,
-                zero_division=0,
-            )
-            num_batches += 1
+            all_y_true.append(y_true)
+            all_y_pred.append(y_pred)
+
+        all_y_true = np.concatenate(all_y_true)
+        all_y_pred = np.concatenate(all_y_pred)
+
+        y_labels_pred = (all_y_pred > self.args["threshold"]).astype(int)
+
+        # Global metrics
+        roc_auc = roc_auc_score(all_y_true, all_y_pred)
+        precision, recall, _ = precision_recall_curve(all_y_true, all_y_pred)
+        pr_auc = auc(recall, precision)
 
         return {
-            "roc_auc": score / num_batches,
-            "f1_score": f1_score_count / num_batches,
-            "recall": recall_score_count / num_batches,
-            "precision": precision_score_count / num_batches,
-            "auc": auc_score_count / num_batches,
+            "roc_auc": roc_auc,
+            "pr_auc": pr_auc,
+            "f1_score": f1_score(all_y_true, y_labels_pred, zero_division=0),
+            "recall": recall_score(all_y_true, y_labels_pred, zero_division=0),
+            "precision": precision_score(all_y_true, y_labels_pred, zero_division=0),
+            "accuracy": accuracy_score(all_y_true, y_labels_pred),
         }
 
     def train_step(self, batch) -> float:
