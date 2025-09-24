@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from src.models import Tweet
+from .tweet import Tweet
 
 
 class TweetLinkProbability(BaseModel):
