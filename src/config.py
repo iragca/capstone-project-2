@@ -59,6 +59,7 @@ class Settings(Enum):
     WANDB_API_KEY = os.getenv("WANDB_API_KEY", "")
     WANDB_ENTITY = os.getenv("WANDB_ENTITY", "")
     MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "")
+    PUSHBULLET_API_KEY = os.getenv("PUSHBULLET_API_KEY", "")
 
 
 # Log key paths
