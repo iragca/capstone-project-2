@@ -6,10 +6,6 @@ from pushbullet import Pushbullet
 
 from src.config import Settings
 
-api_key = Settings.PUSHBULLET_API_KEY.value
-if api_key != "":
-    pushbullet = Pushbullet(api_key)
-
 try:
     # ==== typed args ====
     trials = questionary.text(
@@ -81,7 +77,9 @@ try:
         print(f"🔁 Running trial {trial + 1}/{trials}...")
         subprocess.run(base_command, check=True)
 
+    api_key = Settings.PUSHBULLET_API_KEY.value
     if api_key != "":
+        pushbullet = Pushbullet(api_key)
         pushbullet.push_note(
             f"✅ Experiment '{experiment_name}' Completed",
             f"All {trials} trials have been completed successfully!",
