@@ -82,6 +82,9 @@ def arg_parser():
         default="Random Experiment",
         help="Name of the MLflow experiment.",
     )
+    parser.add_argument(
+        "--learning-rate", type=float, default=0.1, help="Learning rate for the optimizer."
+    )
 
     args = parser.parse_args()
 
@@ -159,7 +162,7 @@ def main():
         )
 
     optimizer = torch.optim.SGD(
-        model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4
+        model.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4
     )
 
     dataloaders = {
