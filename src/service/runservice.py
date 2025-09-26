@@ -161,30 +161,31 @@ class ExperimentService:
             df = pl.DataFrame(
                 {
                     "run_id": run.info.run_id,
-                    "duration (sec)": (run.info.end_time - run.info.start_time)  / 1000,
+                    "experiment_name": params.get("experiment_name", None),
+                    "duration (sec)": (run.info.end_time - run.info.start_time) / 1000,
                     "Loss": metrics.get("Loss", None),
                     # Test metrics
+                    "TEST: Accuracy": metrics.get("TEST: Accuracy", None),
                     "TEST: ROC-AUC": metrics.get("TEST: ROC-AUC", None),
-                    "TEST: F1 Score": metrics.get("TEST: F1 Score", None),
+                    "TEST: PR-AUC": metrics.get("TEST: PR-AUC", None),
                     "TEST: Precision": metrics.get("TEST: Precision", None),
                     "TEST: Recall": metrics.get("TEST: Recall", None),
-                    "TEST: PR-AUC": metrics.get("TEST: PR-AUC", None),
-                    "TEST: Accuracy": metrics.get("TEST: Accuracy", None),
+                    "TEST: F1 Score": metrics.get("TEST: F1 Score", None),
                     # General metrics
                     # Train metrics
-                    "TRAIN: PR-AUC": metrics.get("TRAIN: PR-AUC", None),
-                    "TRAIN: F1 Score": metrics.get("TRAIN: F1 Score", None),
-                    "TRAIN: Precision": metrics.get("TRAIN: Precision", None),
-                    "TRAIN: ROC-AUC": metrics.get("TRAIN: ROC-AUC", None),
-                    "TRAIN: Recall": metrics.get("TRAIN: Recall", None),
                     "TRAIN: Accuracy": metrics.get("TRAIN: Accuracy", None),
+                    "TRAIN: ROC-AUC": metrics.get("TRAIN: ROC-AUC", None),
+                    "TRAIN: PR-AUC": metrics.get("TRAIN: PR-AUC", None),
+                    "TRAIN: Precision": metrics.get("TRAIN: Precision", None),
+                    "TRAIN: Recall": metrics.get("TRAIN: Recall", None),
+                    "TRAIN: F1 Score": metrics.get("TRAIN: F1 Score", None),
                     # Validation metrics
-                    "VAL: PR-AUC": metrics.get("VAL: PR-AUC", None),
-                    "VAL: F1 Score": metrics.get("VAL: F1 Score", None),
-                    "VAL: Precision": metrics.get("VAL: Precision", None),
-                    "VAL: ROC-AUC": metrics.get("VAL: ROC-AUC", None),
-                    "VAL: Recall": metrics.get("VAL: Recall", None),
                     "VAL: Accuracy": metrics.get("VAL: Accuracy", None),
+                    "VAL: ROC-AUC": metrics.get("VAL: ROC-AUC", None),
+                    "VAL: PR-AUC": metrics.get("VAL: PR-AUC", None),
+                    "VAL: Precision": metrics.get("VAL: Precision", None),
+                    "VAL: Recall": metrics.get("VAL: Recall", None),
+                    "VAL: F1 Score": metrics.get("VAL: F1 Score", None),
                     # Hyperparameters
                     "epochs": int(params.get("epochs", None)),
                     "hidden_dim": int(params.get("hidden_dim", None)),
@@ -194,7 +195,6 @@ class ExperimentService:
                     "homogeneous": self.str_to_bool(params.get("homogeneous", None)),
                     "directed": self.str_to_bool(params.get("directed", None)),
                     "graphsage": self.str_to_bool(params.get("graphsage", None)),
-                    "experiment_name": params.get("experiment_name", None),
                 }
             )
             all_rows_df = pl.concat([all_rows_df, df], how="vertical")
@@ -267,10 +267,7 @@ class ExperimentService:
     @property
     def base_schema(self) -> dict[str, type]:
         """Base schema including run ID."""
-        return {
-            "run_id": str,
-            "duration (sec)": float,
-        }
+        return {"run_id": str, "experiment_name": str, "duration (sec)": float}
 
     @property
     def metrics_schema(self) -> dict[str, type]:
@@ -309,7 +306,6 @@ class ExperimentService:
             "homogeneous": bool,
             "directed": bool,
             "graphsage": bool,
-            "experiment_name": str,
         }
 
     @property
