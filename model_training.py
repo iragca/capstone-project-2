@@ -29,7 +29,7 @@ def arg_parser():
         "--epochs", type=int, default=50, help="Number of epochs to train."
     )
     parser.add_argument(
-        "--hidden_dim", type=int, default=128, help="Hidden dimension of the model."
+        "--hidden_dim", type=int, default=24, help="Hidden dimension of the model."
     )
     parser.add_argument(
         "--threshold", type=float, default=0.5, help="Threshold for classification."
