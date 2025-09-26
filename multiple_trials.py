@@ -57,7 +57,6 @@ try:
     ).unsafe_ask()
 
     # ==== flag args ====
-    homogeneous = questionary.confirm("Use homogeneous graph?").unsafe_ask()
     directed = questionary.confirm("Use directed graph?").unsafe_ask()
     graphsage = questionary.confirm("Use GraphSAGE instead of GCN?").unsafe_ask()
     save_model = questionary.confirm("Save best model?", default=False).unsafe_ask()
@@ -81,7 +80,9 @@ try:
         device,
     ]
 
-    if homogeneous:
+    if True: 
+        # always include this flag because there is a skill issue 
+        # with implementing the HeteroGNN architecture
         base_command.append("--homogeneous")
     if directed:
         base_command.append("--directed")
