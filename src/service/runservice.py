@@ -161,7 +161,6 @@ class ExperimentService:
             df = pl.DataFrame(
                 {
                     "run_id": run.info.run_id,
-                    "experiment_name": params.get("experiment_name", None),
                     "duration (sec)": (run.info.end_time - run.info.start_time) / 1000,
                     "Loss": metrics.get("Loss", None),
                     # Test metrics
@@ -267,7 +266,7 @@ class ExperimentService:
     @property
     def base_schema(self) -> dict[str, type]:
         """Base schema including run ID."""
-        return {"run_id": str, "experiment_name": str, "duration (sec)": float}
+        return {"run_id": str}
 
     @property
     def metrics_schema(self) -> dict[str, type]:
@@ -312,7 +311,7 @@ class ExperimentService:
     def run_schema(self) -> dict[str, type]:
         """Schema for run-level metric history records."""
         return {
-            **self.base_schema,
+            "run_id": str,
             "timestamp": int,
             "step": int,
             "metric": str,
@@ -324,6 +323,7 @@ class ExperimentService:
         """Schema for experiment-level aggregated runs."""
         return {
             **self.base_schema,
+            "duration (sec)": float,
             **self.metrics_schema,
             **self.hyperparams_schema,
         }
