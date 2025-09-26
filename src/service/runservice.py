@@ -104,7 +104,10 @@ class ExperimentService:
             List of MLflow `Run` objects for the experiment.
         """
         experiment = self._resolve_experiment(experiment_name, _full_experiment_name)
-        return self.client.search_runs(experiment_ids=[experiment.experiment_id])
+        return self.client.search_runs(
+            experiment_ids=[experiment.experiment_id],
+            filter_string="attributes.status = 'FINISHED'",
+        )
 
     def get_experiment_runs_as_df(
         self,
@@ -158,6 +161,8 @@ class ExperimentService:
             df = pl.DataFrame(
                 {
                     "run_id": run.info.run_id,
+                    "duration (sec)": (run.info.end_time - run.info.start_time)  / 1000,
+                    "Loss": metrics.get("Loss", None),
                     # Test metrics
                     "TEST: ROC-AUC": metrics.get("TEST: ROC-AUC", None),
                     "TEST: F1 Score": metrics.get("TEST: F1 Score", None),
@@ -166,7 +171,6 @@ class ExperimentService:
                     "TEST: PR-AUC": metrics.get("TEST: PR-AUC", None),
                     "TEST: Accuracy": metrics.get("TEST: Accuracy", None),
                     # General metrics
-                    "Loss": metrics.get("Loss", None),
                     # Train metrics
                     "TRAIN: PR-AUC": metrics.get("TRAIN: PR-AUC", None),
                     "TRAIN: F1 Score": metrics.get("TRAIN: F1 Score", None),
@@ -187,9 +191,9 @@ class ExperimentService:
                     "threshold": float(params.get("threshold", None)),
                     "device": params.get("device", None),
                     "num_layers": int(params.get("num_layers", None)),
-                    "homogeneous":self.str_to_bool(params.get("homogeneous", None)),
-                    "directed":self.str_to_bool(params.get("directed", None)),
-                    "graphsage":self.str_to_bool(params.get("graphsage", None)),
+                    "homogeneous": self.str_to_bool(params.get("homogeneous", None)),
+                    "directed": self.str_to_bool(params.get("directed", None)),
+                    "graphsage": self.str_to_bool(params.get("graphsage", None)),
                     "experiment_name": params.get("experiment_name", None),
                 }
             )
@@ -263,31 +267,34 @@ class ExperimentService:
     @property
     def base_schema(self) -> dict[str, type]:
         """Base schema including run ID."""
-        return {"run_id": str}
+        return {
+            "run_id": str,
+            "duration (sec)": float,
+        }
 
     @property
     def metrics_schema(self) -> dict[str, type]:
         """Schema for train/val/test metrics and loss values."""
         return {
+            "Loss": float,
+            "TEST: Accuracy": float,
             "TEST: ROC-AUC": float,
-            "TEST: F1 Score": float,
+            "TEST: PR-AUC": float,
             "TEST: Precision": float,
             "TEST: Recall": float,
-            "TEST: PR-AUC": float,
-            "TEST: Accuracy": float,
-            "Loss": float,
-            "TRAIN: PR-AUC": float,
-            "TRAIN: F1 Score": float,
-            "TRAIN: Precision": float,
-            "TRAIN: ROC-AUC": float,
-            "TRAIN: Recall": float,
+            "TEST: F1 Score": float,
             "TRAIN: Accuracy": float,
-            "VAL: PR-AUC": float,
-            "VAL: F1 Score": float,
-            "VAL: Precision": float,
-            "VAL: ROC-AUC": float,
-            "VAL: Recall": float,
+            "TRAIN: ROC-AUC": float,
+            "TRAIN: PR-AUC": float,
+            "TRAIN: Precision": float,
+            "TRAIN: Recall": float,
+            "TRAIN: F1 Score": float,
             "VAL: Accuracy": float,
+            "VAL: ROC-AUC": float,
+            "VAL: PR-AUC": float,
+            "VAL: Precision": float,
+            "VAL: Recall": float,
+            "VAL: F1 Score": float,
         }
 
     @property
