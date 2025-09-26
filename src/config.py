@@ -17,6 +17,7 @@ INTERIM_DATA_DIR: Path = DATA_DIR / "interim"
 PROCESSED_DATA_DIR: Path = DATA_DIR / "processed"
 MPL_STYLE_DIR: Path = PROJECT_ROOT / "src" / "matplotlib"
 LOGGER_DIR: Path = PROJECT_ROOT / "reports" / "logs"
+PLOTS_DIR: Path = PROJECT_ROOT / "reports" / "figures"
 
 if not ENV_FILE.exists():
     logger.warning(
