@@ -20,6 +20,7 @@ try:
             "Dir vs Undir",
             "GraphSAGE vs GCN",
             "Num Layers",
+            "F1 Score threshold",
             "Other"
         ],
         default="Random Experiment",
