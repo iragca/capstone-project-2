@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-from torch_geometric.nn import SAGEConv
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, SAGEConv
 
 
 class HomoGNN(torch.nn.Module):
@@ -62,15 +60,22 @@ class HomoGNN(torch.nn.Module):
         hidden_size: int = 128,
         num_layers: int = 8,
         GraphSAGE: bool = True,
+        agg_method: str = "mean",
     ):
         super(HomoGNN, self).__init__()
 
+        layer_args = {
+            "in_channels": input_size,
+            "out_channels": hidden_size,
+        }
+
         if GraphSAGE:
             conv_layer = SAGEConv
+            layer_args["aggr"] = agg_method
         else:
             conv_layer = GCNConv
 
-        self.conv1 = conv_layer(input_size, hidden_size)
+        self.conv1 = conv_layer(**layer_args)
         self.bn1 = nn.BatchNorm1d(hidden_size)
         self.loss_fn = torch.nn.BCEWithLogitsLoss()
 
