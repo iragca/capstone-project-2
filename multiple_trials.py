@@ -21,6 +21,7 @@ try:
             "GraphSAGE vs GCN",
             "Num Layers",
             "F1 Score threshold",
+            "GraphSAGE Aggregation",
             "Other"
         ],
         default="Random Experiment",
@@ -64,7 +65,7 @@ try:
     if graphsage:
         agg_method = questionary.select(
             "GraphSAGE Aggregation method?",
-            choices=["mean", "pool", "max", "lstm"],
+            choices=["mean", "sum", "max", "lstm"],
             default="mean",
         ).unsafe_ask()
     save_model = questionary.confirm("Save best model?", default=False).unsafe_ask()
