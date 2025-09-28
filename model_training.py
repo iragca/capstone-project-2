@@ -86,7 +86,7 @@ def arg_parser():
         "--learning-rate", type=float, default=0.1, help="Learning rate for the optimizer."
     )
     parser.add_argument(
-        "--agg-method",
+        "--agg_method",
         type=str,
         default="mean",
         help="Aggregation method for GraphSAGE (mean, pool, max, lstm).",

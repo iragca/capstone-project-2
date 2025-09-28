@@ -96,7 +96,7 @@ try:
         base_command.append("--directed")
     if graphsage:
         base_command.append("--graphsage")
-        base_command.extend(["--agg-method", agg_method])
+        base_command.extend(["--agg_method", agg_method])
     if save_model:
         base_command.append("--save-model")
 
