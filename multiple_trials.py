@@ -60,6 +60,13 @@ try:
     # ==== flag args ====
     directed = questionary.confirm("Use directed graph?").unsafe_ask()
     graphsage = questionary.confirm("Use GraphSAGE instead of GCN?").unsafe_ask()
+
+    if graphsage:
+        agg_method = questionary.select(
+            "GraphSAGE Aggregation method?",
+            choices=["mean", "pool", "max", "lstm"],
+            default="mean",
+        ).unsafe_ask()
     save_model = questionary.confirm("Save best model?", default=False).unsafe_ask()
 
     # ==== build command ====

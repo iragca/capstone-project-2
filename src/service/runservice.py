@@ -194,6 +194,7 @@ class ExperimentService:
                     "homogeneous": self.str_to_bool(params.get("homogeneous", None)),
                     "directed": self.str_to_bool(params.get("directed", None)),
                     "graphsage": self.str_to_bool(params.get("graphsage", None)),
+                    "agg_method": params.get("agg_method", None),
                 }
             )
             all_rows_df = pl.concat([all_rows_df, df], how="vertical")
@@ -305,6 +306,7 @@ class ExperimentService:
             "homogeneous": bool,
             "directed": bool,
             "graphsage": bool,
+            "agg_method": str,
         }
 
     @property

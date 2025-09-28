@@ -85,6 +85,12 @@ def arg_parser():
     parser.add_argument(
         "--learning-rate", type=float, default=0.1, help="Learning rate for the optimizer."
     )
+    parser.add_argument(
+        "--agg-method",
+        type=str,
+        default="mean",
+        help="Aggregation method for GraphSAGE (mean, pool, max, lstm).",
+    )
 
     args = parser.parse_args()
 
@@ -154,6 +160,7 @@ def main():
             hidden_size=args["hidden_dim"],
             num_layers=args["num_layers"],
             GraphSAGE=args["graphsage"],
+            agg_method=args["agg_method"],
         ).to(args["device"])
     else:
         graph = HeteroGraph(graph)
