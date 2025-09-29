@@ -21,6 +21,7 @@ try:
             "GraphSAGE vs GCN",
             "Num Layers",
             "F1 Score threshold",
+            "F1 Score threshold (Undirected)",
             "GraphSAGE Aggregation",
             "Other"
         ],
