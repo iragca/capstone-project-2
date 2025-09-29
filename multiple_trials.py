@@ -65,7 +65,7 @@ try:
     if graphsage:
         agg_method = questionary.select(
             "GraphSAGE Aggregation method?",
-            choices=["mean", "sum", "max", "lstm"],
+            choices=["mean", "sum", "max", "lstm", "median"],
             default="mean",
         ).unsafe_ask()
     save_model = questionary.confirm("Save best model?", default=False).unsafe_ask()
