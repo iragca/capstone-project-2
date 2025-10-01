@@ -120,7 +120,7 @@ class DatasetLoader:
             return self._create_graph(data=df, dtype=dtype)
 
     @function_printer("Fetching data (may take a few minutes or more)")
-    def get_dataset(self) -> pl.DataFrame:
+    def get_dataset(self, collection: str = "dataset") -> pl.DataFrame:
         """
         Fetch the dataset from the PocketBase warehouse.
 
@@ -129,7 +129,10 @@ class DatasetLoader:
         pl.DataFrame
             The dataset as a Polars DataFrame.
         """
-        records: list[Record] = self.pb.get_dataset()
+        if self.pb is None:
+            raise ValueError("PBWarehouse instance not provided.")
+
+        records: list[Record] = self.pb.get_dataset(collection=collection)
         data: list[dict] = self._parse_records(records)
         return pl.DataFrame(data)
 

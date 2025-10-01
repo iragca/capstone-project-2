@@ -46,7 +46,7 @@ class PBWarehouse:
                 self.authenticated = False
                 raise e
 
-    def get_dataset(self) -> list[Record]:
+    def get_dataset(self, collection: str = "dataset") -> list[Record]:
         """
         Fetch the dataset from the PocketBase warehouse.
 
@@ -62,7 +62,7 @@ class PBWarehouse:
             If PocketBase returns an error response other than handled cases.
         """
         try:
-            dataset = self.client.collection("dataset").get_full_list(batch=10000)
+            dataset = self.client.collection(collection).get_full_list(batch=10000)
             return dataset
         except ClientResponseError as e:
             logger.error(f"Error fetching dataset: {e}")
