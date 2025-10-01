@@ -103,7 +103,7 @@ npm run deploy
 ```
 
 This will automatically deploy to Cloudflare Workers.
-After which, you will be prompted to authenticate your own Cloudflare Account. Then the frontend is deployed to
+After which, you will be prompted to authenticate your own Cloudflare Account. Then the frontend is deployed to the cloud.
 
 ````{admonition} Expenses
 This will deploy to the cloud, using cloud resources! So make sure to be aware that what you are using is free of charge, or that you are willing to pay for cloud costs. Last I checked, [Cloudflare Workers](https://workers.cloudflare.com/) are free.
