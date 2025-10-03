@@ -162,6 +162,7 @@ class ExperimentService:
                 {
                     "run_id": run.info.run_id,
                     "duration (sec)": (run.info.end_time - run.info.start_time) / 1000,
+                    "system/gpu_0_memory_usage_megabytes": float(metrics.get("system/gpu_0_memory_usage_megabytes", None)),
                     "Loss": metrics.get("Loss", None),
                     # Test metrics
                     "TEST: Accuracy": metrics.get("TEST: Accuracy", None),
@@ -273,6 +274,7 @@ class ExperimentService:
     def metrics_schema(self) -> dict[str, type]:
         """Schema for train/val/test metrics and loss values."""
         return {
+            "system/gpu_0_memory_usage_megabytes": float,
             "Loss": float,
             "TEST: Accuracy": float,
             "TEST: ROC-AUC": float,
