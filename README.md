@@ -10,6 +10,11 @@ Prequisites of running the app.
 - Accessing to the PocketBase with all the data
 - Project dependencies (to install, read more below in [Development](#development)
 
+## Main Documentation
+
+The main documentation is found [here](https://iragca.github.io/capstone-project-2/).
+
+
 ## How to use this repo
 
 ```
@@ -23,8 +28,9 @@ Prequisites of running the app.
 │    ├── scraper                 # Scrapers to get data
 │    ├── ui                      # Utility functions for the Streamlit UI
 │    └── utils                   # Utility functions
-├── main.py                      # Compilation of small scripts (Usage: uv run main.py <function-name> <args/kwargs>)
-├── mvp.py                       # (MPV v1.0) CLI implementation of the MVP
+├── mvps
+│    ├── mvp.py                     # (MPV v1.0) CLI implementation of the MVP
+│    ├── streamlit_mvp.py   
 └── streamlit_mvp.py             # (MPV v2.0) Streamlit implementation of the MVP (Usage: uv run streamlit run streamlit_mvp.py)
 ```
 
@@ -50,4 +56,4 @@ for the libraries Pytorch Geometric and friends. This might need clean up 🧹.
 | <img src="https://avatars.githubusercontent.com/u/156993659?v=4" width="40"> | Karylle dela Cruz / [@kardcy](https://github.com/kardcy) | --                             | Data Annotation, Project Lead, Paper |
 | <img src="https://avatars.githubusercontent.com/u/187070330?v=4" width="40"> | Chris Irag / [@iragca](https://github.com/iragca)        | chrisandrei.irag@1.ustp.edu.ph | Database Admin, Developer, Paper     |
 | --                                                                           | Dane Casiño                                              | --                             | Data Annotation, Paper               |
-| --                                                                           | Usher Raymond                                            | --                             | Paper                                |
+| --                                                                           | Usher Raymond                                            | --                             | Data Annotation, Paper                        |
