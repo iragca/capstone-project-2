@@ -76,13 +76,14 @@ class HomoGNN(torch.nn.Module):
             conv_layer = GCNConv
 
         self.conv1 = conv_layer(**layer_args)
+        self.output_layer = conv_layer(hidden_size, hidden_size)  
         self.bn1 = nn.BatchNorm1d(hidden_size)
         self.loss_fn = torch.nn.BCEWithLogitsLoss()
 
         self.convs = nn.ModuleList()
         self.bns = nn.ModuleList()
 
-        for _ in range(num_layers - 1):
+        for _ in range(num_layers):
             self.convs.append(conv_layer(hidden_size, hidden_size))
             self.bns.append(nn.BatchNorm1d(hidden_size))
 
@@ -121,6 +122,8 @@ class HomoGNN(torch.nn.Module):
             x = conv(x, edge_index)
             x = self.bns[i](x)
             x = F.relu(x)
+
+        x = self.output_layer(x, edge_index)
 
         return x, edge_label_index
 
