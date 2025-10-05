@@ -28,6 +28,12 @@ async def main():
         help="Use strict matching for username.",
         default=False,
     )
+    parser.add_argument(
+        "--hidden_size", type=int, help="Hidden size of the GNN model.", default=24
+    )
+    parser.add_argument(
+        "--num_layers", type=int, help="Number of layers of the GNN model.", default=4
+    )
     args = parser.parse_args().__dict__
 
     if not args["username"] and not args["user"]:
@@ -38,7 +44,7 @@ async def main():
     pb = PBWarehouse()
     scraper = TweetyScraper(previous_session=True)
 
-    model = HomoGNN(input_size=5, hidden_size=32)
+    model = HomoGNN(input_size=5, hidden_size=args["hidden_size"], num_layers=args["num_layers"])
     model.load_state_dict(torch.load(model_path))
     dataset_loader = DatasetLoader(pb)
     data = dataset_loader.load_dataset()
