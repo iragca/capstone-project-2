@@ -66,6 +66,7 @@ def classify_data(collection: str = "tweets_v2") -> None:
 
     def classify_text(text: str) -> int:
         inputs = tokenizer(text, return_tensors="pt", truncation=True)
+        model.eval()
         outputs = model(**inputs)
         logits = outputs.logits
         probs = torch.nn.functional.softmax(logits, dim=-1)
