@@ -50,6 +50,7 @@ The second line installs [PyTorch Geoemetric](https://pytorch-geometric.readthed
 ## Environment Variables
 
 Better to set these environment variables now to only think about them once.
+The `.env` file should be in root repo folder, if it doesn't exist, make one.
 
 ```bash
 X_USERNAME=
