@@ -8,7 +8,7 @@ The tasks that are involved in scraping are made into small scripts, which can b
 
 `````{admonition} How to use
 
-To use these scripts, you run `uv run scraping <command_name> <args/kwargs>`. While replaceing the underscores `_` with a dash `-`.
+To use these scripts, you run `uv run scraping.py <command_name> <args/kwargs>`. While replaceing the underscores `_` with a dash `-`.
 
 ````{card}
 :class-header: bg-light
@@ -27,7 +27,7 @@ def lets_go(args1, args2) -> ...:
 ```
 You run:
 ```bash
-uv run scraping lets-go --args1 value --args2 value
+uv run scraping.py lets-go --args1 value --args2 value
 ```
 ````
 `````
