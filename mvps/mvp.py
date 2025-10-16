@@ -1,3 +1,9 @@
+####
+#
+# This module is deprecated and is unmaintained.
+#
+###
+
 import argparse
 from asyncio import run
 from pprint import pprint

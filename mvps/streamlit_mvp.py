@@ -1,3 +1,9 @@
+####
+#
+# This module is deprecated and is unmaintained.
+#
+###
+
 from asyncio import run
 
 import polars as pl
