@@ -21,7 +21,7 @@ parts:
       - file: content/modeling/Classifying
       - file: content/modeling/Data_Loading
       - file: content/modeling/Preprocessing
-      - file: content/modeling/Graph_Building
+      - file: content/modeling/Graph_Building.ipynb
 
   - caption: "Training"
     chapters:
