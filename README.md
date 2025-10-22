@@ -29,9 +29,13 @@ The main documentation is found [here](https://iragca.github.io/capstone-project
 │    ├── ui                      # Utility functions for the Streamlit UI
 │    └── utils                   # Utility functions
 ├── mvps
-│    ├── mvp.py                     # (MPV v1.0) CLI implementation of the MVP
-│    ├── streamlit_mvp.py   
-└── streamlit_mvp.py             # (MPV v2.0) Streamlit implementation of the MVP (Usage: uv run streamlit run streamlit_mvp.py)
+│    ├── mvp.py                  # (MPV v1.0) CLI implementation of the MVP
+│    ├── streamlit_mvp.py        # (MPV v2.0) Streamlit implementation of the MVP (Usage: uv run streamlit run streamlit_mvp.py)
+│    └── mvp3_backend.py         # (MVP v3.0) FastAPI backend server (Usage: uv run fastapi run mvp3_backend.py --port 8001)
+├── data                         # all datasets, processed, raw data, cached data found here
+└── best_model.pth               # model artifact when training and saving the best model
+├── model_training.py            # do a single training run 
+└── multiple_trials.py           # do multiple training runs of the same configuration, uses `model_training.py` under the hood
 ```
 
 ## Development
