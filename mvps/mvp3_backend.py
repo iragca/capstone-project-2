@@ -55,13 +55,13 @@ node_features = Features(
         "is_hateful",
     ],
     user=[
-        # "favourites_count",
-        # "follower_count",
-        # "following_count",
+        "favourites_count",
+        "follower_count",
+        "following_count",
         # "number_of_tweets",
         # "listed_count",
         # "is_blue_verified",
-        "friends",
+        # "friends",
     ],
 )
 

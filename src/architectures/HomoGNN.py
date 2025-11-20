@@ -76,7 +76,7 @@ class HomoGNN(torch.nn.Module):
             conv_layer = GCNConv
 
         self.conv1 = conv_layer(**layer_args)
-        self.output_layer = conv_layer(hidden_size, hidden_size)  
+        self.output_layer = conv_layer(hidden_size, hidden_size)
         self.bn1 = nn.BatchNorm1d(hidden_size)
         self.loss_fn = torch.nn.BCEWithLogitsLoss()
 
