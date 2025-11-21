@@ -75,11 +75,6 @@ class InferenceResults:
         if edge_label_index.ndim != 2:
             raise ValueError("Edge label index must have shape [2, num_edges].")
 
-        if graph.number_of_edges() != edge_label_index.shape[1] / 2:
-            raise ValueError(
-                "Graph and edge label index must have the same number of edges."
-            )
-
     def get_node_using_node_index(self, node_index: int) -> tuple[int, dict]:
         """
         Get the node using its index in the graph.
