@@ -67,7 +67,7 @@ node_features = Features(
 
 
 gb = GraphBuilder(data=data, node_features=node_features)
-graph: Graph = gb.create_graph()
+graph: Graph = gb.create_graph(directed=True)
 
 
 @app.get("/")
