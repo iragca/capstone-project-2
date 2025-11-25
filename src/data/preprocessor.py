@@ -117,7 +117,7 @@ class Preprocessor:
             pl.col("source").map_elements(
                 lambda x: self.categorize_source_str(self.remove_anchor_tags(x))
                 if isinstance(x, str)
-                else x,
+                else str(x),
                 return_dtype=pl.Utf8,
             )
         )
